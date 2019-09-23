@@ -7,11 +7,12 @@
 
 
 #include <map>
-
+#define EPSILON 0
 
 class NFA {
 public:
     std::map<char, NFA *> transfer;
+    bool is_end;
 };
 
 class Operation {

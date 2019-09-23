@@ -35,6 +35,7 @@ private:
     void collapse_plus();
     void collapse_option();
     void collapse_or();
+    void do_concat(char ch);
 };
 
 
