@@ -6,7 +6,9 @@
 #define FASTREGEXCPP_PARSER_H
 
 
+#include <stack>
 #include "restring.h"
+#include "nfa.h"
 
 class Parser {
 public:
@@ -17,11 +19,16 @@ public:
     void term();
     void factor();
     void charset();
+    void range();
     void group();
     void chars();
 
+    void push_operator(Operation::operations op, size_t parameter_count);
+    void push_nfa_node(NFA*);
 private:
     REstring& restring;
+    std::stack<NFA*> nfa_nodes;
+    std::stack<Operation*> ops;
 };
 
 

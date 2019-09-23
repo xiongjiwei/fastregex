@@ -7,7 +7,8 @@
 #include "parser.h"
 
 void fastre::compile(const std::string& pattern_) {
-    Parser parser(pattern_);
+    REstring restring(pattern_);
+    Parser parser(restring);
 
     parser.regex();
 }
