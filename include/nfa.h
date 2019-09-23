@@ -8,8 +8,9 @@
 
 #include <map>
 
+
 class NFA {
-private:
+public:
     std::map<char, NFA *> transfer;
 };
 
@@ -34,6 +35,13 @@ private:
     operations op;
     size_t parameters_count;
 };
+
+
+typedef struct nfa_graph_ {
+    NFA *start;
+    NFA *end;
+    nfa_graph_(NFA *start_, NFA *end_) : start(start_), end(end_) {}
+} nfa_graph;
 
 
 #endif //FASTREGEXCPP_NFA_H

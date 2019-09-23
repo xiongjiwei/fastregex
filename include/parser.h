@@ -24,11 +24,17 @@ public:
     void chars();
 
     void push_operator(Operation::operations op, size_t parameter_count);
-    void push_nfa_node(NFA*);
+    void push_nfa_node(nfa_graph*);
+
 private:
     REstring& restring;
-    std::stack<NFA*> nfa_nodes;
+    std::stack<nfa_graph*> nfa_graph_nodes;
     std::stack<Operation*> ops;
+
+    void collapse_star();
+    void collapse_plus();
+    void collapse_option();
+    void collapse_or();
 };
 
 
