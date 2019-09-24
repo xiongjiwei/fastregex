@@ -7,6 +7,7 @@
 
 
 #include <stack>
+#include <unordered_set>
 #include "restring.h"
 #include "nfa.h"
 
@@ -21,7 +22,7 @@ public:
     void charset();
     void range();
     void group();
-    void chars();
+    bool chars();
 
     void push_operator(Operation::operations op, size_t parameter_count);
     void push_nfa_node(nfa_graph*);
@@ -30,12 +31,14 @@ private:
     REstring& restring;
     std::stack<nfa_graph*> nfa_graph_nodes;
     std::stack<Operation*> ops;
+    const std::unordered_set<char> UNHANDLED_CHAR = {'*', '+', '?', ')', '}', '|',};
 
     void collapse_star();
     void collapse_plus();
     void collapse_option();
     void collapse_or();
-    void do_concat(char ch);
+    void collapse_char(char ch);
+    void do_concat();
 };
 
 

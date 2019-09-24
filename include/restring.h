@@ -12,7 +12,7 @@ class REstring {
 public:
     REstring(const std::string& pattern_): pattern(pattern_) {}
 
-    void remove_prefix(size_t);
+    void remove_prefix(size_t count = 1);
 
     size_t size() const;
 

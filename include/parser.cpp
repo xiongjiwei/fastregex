@@ -7,7 +7,7 @@
 bool Parser::regex() {
     if (restring.size() > 0) {
         if (restring[0] == '^') {
-            restring.remove_prefix(1);
+            restring.remove_prefix();
             exper();
             return restring.size() == 1 && restring[0] == '$';
         } else {
@@ -22,8 +22,9 @@ bool Parser::regex() {
 void Parser::exper() {
     term();
     while (restring[0] == '|') {
-        restring.remove_prefix(1);
+        restring.remove_prefix();
         term();
+        collapse_or();
     }
 }
 
@@ -32,11 +33,14 @@ void Parser::term() {
         factor();
         switch (restring[0]) {
             case '+':
-                return;
+                collapse_plus();
+                break;
             case '*':
-                return;
+                collapse_star();
+                break;
             case '?':
-                return;
+                collapse_option();
+                break;
             default:
                 return;
         }
@@ -58,7 +62,7 @@ void Parser::factor() {
 
 void Parser::charset() {
     if (restring[0] == '^') {
-        restring.remove_prefix(1);
+        restring.remove_prefix();
         range();
     } else {
         range();
@@ -69,12 +73,24 @@ void Parser::group() {
     exper();
 }
 
-void Parser::chars() {
-    if (restring[0] == '\\') {
-        restring.remove_prefix(1);
+bool Parser::chars() {
+    while (restring.size() > 0 &&
+           UNHANDLED_CHAR.find(restring[0]) == UNHANDLED_CHAR.end()) { //not can handled character
+        if (restring[0] == '\\') {
+            if (restring.size() > 1) {
+                //escape character
+            } else {
+                return false;
+            }
+        }
 
+        collapse_char(restring[0]);
+        restring.remove_prefix();
     }
+
+    return true;
 }
+
 
 void Parser::range() {
 
@@ -116,12 +132,12 @@ void Parser::collapse_or() {
 
 }
 
-void Parser::do_concat(char ch) {
-    auto graph = nfa_graph_nodes.top();
-    graph->end->transfer[ch] = new NFA();
-    graph->end->is_end = false;
-    graph->end = graph->end->transfer[ch];
-    graph->end->is_end = true;
+void Parser::collapse_char(char ch) {
+
+}
+
+void Parser::do_concat() {
+
 }
 
 
