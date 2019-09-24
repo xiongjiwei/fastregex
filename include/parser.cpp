@@ -69,8 +69,16 @@ void Parser::charset() {
     }
 }
 
-void Parser::group() {
-    exper();
+bool Parser::group() {
+    if (restring[0] == '(' && restring.size() >= 2) {
+        restring.remove_prefix();
+        exper();
+        if (restring.size() >= 1 && restring[0] == ')') {
+            restring.remove_prefix();
+            return true;
+        }
+    }
+    return false;
 }
 
 bool Parser::chars() {

@@ -21,7 +21,7 @@ public:
     void factor();
     void charset();
     void range();
-    void group();
+    bool group();
     bool chars();
 
     void push_operator(Operation::operations op, size_t parameter_count);
