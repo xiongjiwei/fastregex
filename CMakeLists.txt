@@ -3,4 +3,4 @@ project(fastregexcpp)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(fastregexcpp main.cpp include/fastre.cpp include/fastre.h include/parser.cpp include/parser.h include/restring.cpp include/restring.h include/nfa.cpp include/nfa.h include/ast.cpp include/ast.h)
+add_executable(fastregexcpp src/main.cpp src/include/fastre.cpp src/include/fastre.h src/include/parser.cpp src/include/parser.h src/include/restring.cpp src/include/restring.h src/include/nfa.cpp src/include/nfa.h src/include/ast.cpp src/include/ast.h)

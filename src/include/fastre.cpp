@@ -3,7 +3,6 @@
 //
 
 #include "fastre.h"
-#include "nfa.h"
 #include "parser.h"
 
 void fastre::compile(const std::string& pattern_) {
