@@ -4,148 +4,124 @@
 
 #include "parser.h"
 
-bool Parser::regex() {
-    if (restring.size() > 0) {
-        if (restring[0] == '^') {
-            restring.remove_prefix();
-            exper();
-            return restring.size() == 1 && restring[0] == '$';
-        } else {
-            exper();
-            return true;
-        }
-    } else {
-        return false;
+AST *Parser::exper() {
+    auto root = term();
+    if (root == nullptr) {
+        return nullptr;
     }
-}
 
-void Parser::exper() {
-    term();
-    while (restring[0] == '|') {
+    while (restring.size() >= 2 && restring[0] == '|') {
         restring.remove_prefix();
-        term();
-        collapse_or();
+        root = collapse_or(root, term());
     }
+
+    return root;
 }
 
-void Parser::term() {
-    while (true) {
-        factor();
+AST *Parser::term() {
+    AST *root = factor();
+    while (restring.size() > 0 && root != nullptr) {
         switch (restring[0]) {
-            case '+':
-                collapse_plus();
-                break;
             case '*':
-                collapse_star();
+                restring.remove_prefix();
+                root = collapse_star(root);
                 break;
             case '?':
-                collapse_option();
+                root = collapse_option(root);
+                restring.remove_prefix();
+                break;
+            case '+':
+                root = collapse_plus(root);
+                restring.remove_prefix();
                 break;
             default:
-                return;
+                root = collapse_and(root, factor());
+                break;
         }
     }
+
+    return root;
 }
 
-void Parser::factor() {
-    switch (restring[0]) {
-        case '[':
-            charset();
-            break;
-        case '(':
-            group();
-            break;
-        default:
-            chars();
+AST *Parser::factor() {
+    if (restring.size() > 0) {
+        switch (restring[0]) {
+            case '(':
+                return group();
+            case '[':
+                return charset();
+            default:
+                return chars();
+        }
     }
+    return nullptr;
 }
 
-void Parser::charset() {
-    if (restring[0] == '^') {
+AST *Parser::group() {
+    AST *root = nullptr;
+    if (restring.size() >= 2) {
         restring.remove_prefix();
-        range();
-    } else {
-        range();
+        root = exper();
+        if (!(restring.size() >= 1 && restring[0] == ')')) {
+            root = nullptr;
+        }
     }
+    return root;
 }
 
-bool Parser::group() {
-    if (restring[0] == '(' && restring.size() >= 2) {
+AST *Parser::charset() {
+    AST *root = nullptr;
+    if (restring.size() >= 2) {
         restring.remove_prefix();
-        exper();
-        if (restring.size() >= 1 && restring[0] == ')') {
+        bool is_negative = false;
+        if (restring[0] == '^') {
+            is_negative = true;
             restring.remove_prefix();
-            return true;
         }
-    }
-    return false;
-}
 
-bool Parser::chars() {
-    while (restring.size() > 0 &&
-           UNHANDLED_CHAR.find(restring[0]) == UNHANDLED_CHAR.end()) { //not can handled character
-        if (restring[0] == '\\') {
-            if (restring.size() > 1) {
-                //escape character
+        while (restring.size() >= 1 && restring[0] != ']') {
+            if (root == nullptr) {
+                root = new AST(AST::CHARSET);
+                root->is_charset_negative = is_negative;
+            }
+
+            if (restring.size() >= 4 && restring[1] == '-') {
+                if (restring[0] > restring[2]) {
+                    delete root;
+                    root = nullptr;
+                    break;
+                }
+
+                for (char ch = restring[0]; ch <= restring[2]; ++ch) {
+                    root->add_character(ch);
+                }
+                restring.remove_prefix(3);
             } else {
-                return false;
+                root->add_character(restring[0]);
+                restring.remove_prefix();
             }
         }
 
-        collapse_char(restring[0]);
-        restring.remove_prefix();
+        if (restring.size() == 0) {
+            delete root;
+            root = nullptr;
+        } else {
+            restring.remove_prefix();
+        }
     }
 
-    return true;
+    return root;
 }
 
+AST *Parser::chars() {
+    AST *root = nullptr;
 
-void Parser::range() {
-
-}
-
-void Parser::push_operator(Operation::operations op, size_t parameter_count) {
-    ops.push(new Operation(op, parameter_count));
-}
-
-void Parser::push_nfa_node(nfa_graph *push_node) {
-    nfa_graph_nodes.push(push_node);
-}
-
-void Parser::collapse_star() {
-    auto graph = nfa_graph_nodes.top();
-    graph->start->transfer[EPSILON] = graph->end;
-    graph->end->transfer[EPSILON] = graph->start;
-}
-
-void Parser::collapse_plus() {
-    auto graph = nfa_graph_nodes.top();
-    graph->end->transfer[EPSILON] = graph->start;
-}
-
-void Parser::collapse_option() {
-    auto graph = nfa_graph_nodes.top();
-    graph->start->transfer[EPSILON] = graph->end;
-}
-
-void Parser::collapse_or() {
-    if (nfa_graph_nodes.size() < 2) {
-        return;
+    while (restring.size() > 0 && UNHANDLED_CHAR.find(restring[0]) == UNHANDLED_CHAR.end()) {
+        if (root == nullptr) {
+            root = new AST(AST::NODETYPE::CHARSET);
+        }
+        root->add_character(restring[0]);
     }
-    auto l = nfa_graph_nodes.top();
-    nfa_graph_nodes.pop();
-    auto r = nfa_graph_nodes.top();
-    nfa_graph_nodes.pop();
 
-
+    return root;
 }
-
-void Parser::collapse_char(char ch) {
-
-}
-
-void Parser::do_concat() {
-
-}
-
-

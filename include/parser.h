@@ -6,39 +6,39 @@
 #define FASTREGEXCPP_PARSER_H
 
 
-#include <stack>
 #include <unordered_set>
 #include "restring.h"
 #include "nfa.h"
+#include "ast.h"
 
 class Parser {
 public:
     explicit Parser(REstring& restring_): restring(restring_){}
 
-    bool regex();
-    void exper();
-    void term();
-    void factor();
-    void charset();
-    void range();
-    bool group();
-    bool chars();
+    AST* regex();
+    AST* exper();
+    AST* term();
+    AST* factor();
+    AST* charset();
+    AST* range();
+    AST* group();
+    AST* chars();
+
+    bool push_to_ast_stake(AST *);
 
     void push_operator(Operation::operations op, size_t parameter_count);
     void push_nfa_node(nfa_graph*);
 
 private:
     REstring& restring;
-    std::stack<nfa_graph*> nfa_graph_nodes;
-    std::stack<Operation*> ops;
-    const std::unordered_set<char> UNHANDLED_CHAR = {'*', '+', '?', ')', '}', '|',};
+    const std::unordered_set<char> UNHANDLED_CHAR = {'*', '+', '?', ')', '|',};
 
-    void collapse_star();
-    void collapse_plus();
-    void collapse_option();
-    void collapse_or();
+    AST * collapse_star(AST *child);
+    AST * collapse_plus(AST *child);
+    AST * collapse_option(AST *child);
+    AST * collapse_or(AST *left, AST *right);
+    AST * collapse_and(AST *left, AST *right);
     void collapse_char(char ch);
-    void do_concat();
 };
 
 
