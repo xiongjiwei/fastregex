@@ -10,7 +10,7 @@
 
 class REstring {
 public:
-    REstring(const std::string& pattern_): pattern(pattern_) {}
+    explicit REstring(const std::string& pattern_): pattern(pattern_) {}
 
     void remove_prefix(size_t count = 1);
 

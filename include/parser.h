@@ -20,25 +20,14 @@ public:
     AST* term();
     AST* factor();
     AST* charset();
-    AST* range();
     AST* group();
     AST* chars();
-
-    bool push_to_ast_stake(AST *);
-
-    void push_operator(Operation::operations op, size_t parameter_count);
-    void push_nfa_node(nfa_graph*);
-
 private:
     REstring& restring;
     const std::unordered_set<char> UNHANDLED_CHAR = {'*', '+', '?', ')', '|',};
 
-    AST * collapse_star(AST *child);
-    AST * collapse_plus(AST *child);
-    AST * collapse_option(AST *child);
-    AST * collapse_or(AST *left, AST *right);
-    AST * collapse_and(AST *left, AST *right);
-    void collapse_char(char ch);
+    static AST * collapse_unary_operator(AST *child, AST::NODETYPE type);
+    static AST * collapse_binary_operator(AST *left, AST* right, AST::NODETYPE type);
 };
 
 

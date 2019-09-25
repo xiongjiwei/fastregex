@@ -4,6 +4,10 @@
 
 #include "parser.h"
 
+AST *Parser::regex() {
+    return nullptr;
+}
+
 AST *Parser::exper() {
     auto root = term();
     if (root == nullptr) {
@@ -12,7 +16,7 @@ AST *Parser::exper() {
 
     while (restring.size() >= 2 && restring[0] == '|') {
         restring.remove_prefix();
-        root = collapse_or(root, term());
+        root = collapse_binary_operator(root, term(), AST::OR);
     }
 
     return root;
@@ -24,18 +28,18 @@ AST *Parser::term() {
         switch (restring[0]) {
             case '*':
                 restring.remove_prefix();
-                root = collapse_star(root);
+                root = collapse_unary_operator(root, AST::STAR);
                 break;
             case '?':
-                root = collapse_option(root);
+                root = collapse_unary_operator(root, AST::OPTION);
                 restring.remove_prefix();
                 break;
             case '+':
-                root = collapse_plus(root);
+                root = collapse_unary_operator(root, AST::PLUS);
                 restring.remove_prefix();
                 break;
             default:
-                root = collapse_and(root, factor());
+                root = collapse_binary_operator(root, factor(), AST::AND);
                 break;
         }
     }
@@ -123,5 +127,26 @@ AST *Parser::chars() {
         root->add_character(restring[0]);
     }
 
+    return root;
+}
+
+AST *Parser::collapse_unary_operator(AST *child, AST::NODETYPE type) {
+    if (child == nullptr) {
+        return nullptr;
+    }
+
+    auto root = new AST(type);
+    root->left = child;
+    return root;
+}
+
+AST *Parser::collapse_binary_operator(AST *left, AST *right, AST::NODETYPE type) {
+    if (left == nullptr || right == nullptr) {
+        return nullptr;
+    }
+
+    auto root = new AST(type);
+    root->left = left;
+    root->right = right;
     return root;
 }

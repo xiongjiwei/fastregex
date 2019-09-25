@@ -12,6 +12,10 @@ class AST {
 public:
     enum NODETYPE {
         OR,
+        STAR,
+        PLUS,
+        OPTION,
+        AND,
         CHARSET
     };
 
