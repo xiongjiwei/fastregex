@@ -22,6 +22,8 @@ public:
     AST* charset();
     AST* group();
     AST* chars();
+
+    void maybe_repeat();
 private:
     REstring& restring;
     const std::unordered_set<char> UNHANDLED_CHAR = {'*', '+', '?', ')', '|',};

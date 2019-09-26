@@ -24,38 +24,35 @@ AST *Parser::exper() {
 
 AST *Parser::term() {
     AST *root = factor();
-    while (restring.size() > 0 && root != nullptr) {
-        switch (restring[0]) {
-            case '*':
-                restring.remove_prefix();
-                root = collapse_unary_operator(root, AST::STAR);
-                break;
-            case '?':
-                root = collapse_unary_operator(root, AST::OPTION);
-                restring.remove_prefix();
-                break;
-            case '+':
-                root = collapse_unary_operator(root, AST::PLUS);
-                restring.remove_prefix();
-                break;
-            default:
-                root = collapse_binary_operator(root, factor(), AST::AND);
-                break;
+    while (restring.size() > 0 && restring[0] != '|' && root != nullptr) {
+        if (restring[0] == '*') {
+            root = collapse_unary_operator(root, AST::STAR);
+        } else if (restring[0] == '?') {
+            root = collapse_unary_operator(root, AST::OPTION);
+        } else if (restring[0] == '+') {
+            root = collapse_unary_operator(root, AST::PLUS);
+        } else if (restring[0] == '{') {
+            maybe_repeat();
+        } else {
+            root = collapse_binary_operator(root, factor(), AST::AND);
         }
     }
 
     return root;
 }
 
+void Parser::maybe_repeat() {
+
+}
+
 AST *Parser::factor() {
     if (restring.size() > 0) {
-        switch (restring[0]) {
-            case '(':
-                return group();
-            case '[':
-                return charset();
-            default:
-                return chars();
+        if (restring[0] == '(') {
+            return group();
+        } else if (restring[0] == '[') {
+            return charset();
+        } else {
+            return chars();
         }
     }
     return nullptr;
