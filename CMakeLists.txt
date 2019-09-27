@@ -10,5 +10,5 @@ include_directories(regex_lib)
 add_subdirectory(src)
 
 target_link_libraries(fastregexcpp regex_lib)
-#add_executable(fastregexcpp main.cpp src/include/fastre.cpp src/include/fastre.h src/include/parser.cpp src/include/parser.h src/include/restring.cpp src/include/restring.h src/include/nfa.cpp src/include/nfa.h src/include/ast.cpp src/include/ast.h catch_test/test.cpp)
-add_subdirectory(catch_test)
+#add_executable(fastregexcpp main.cpp src/include/fastre.cpp src/include/fastre.h src/include/parser.cpp src/include/parser.h src/include/restring.cpp src/include/restring.h src/include/nfa.cpp src/include/nfa.h src/include/ast.cpp src/include/ast.h test/test.cpp)
+add_subdirectory(test)
