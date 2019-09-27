@@ -24,8 +24,8 @@ public:
     AST* group();
     AST* chars();
 
-    void maybe_repeat();
-    bool is_digital();
+    AST *maybe_repeat(AST *root);
+
 private:
     REstring& restring;
     const std::unordered_set<char> UNHANDLED_CHAR = {'*', '+', '?', ')', '|',};

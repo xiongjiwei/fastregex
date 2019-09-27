@@ -4,7 +4,7 @@
 
 #include "restring.h"
 
-void REstring::remove_prefix(const size_t count) {
+void REstring::remove_prefix(int count) {
     cur_index += count;
 }
 

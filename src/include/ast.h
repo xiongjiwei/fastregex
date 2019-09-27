@@ -16,6 +16,7 @@ public:
         PLUS,
         OPTION,
         AND,
+        REPEAT,
         CHARSET
     };
 
@@ -34,6 +35,9 @@ public:
 
     AST *left = nullptr;
     AST *right = nullptr;
+
+    int low = 0;
+    int high = 0;
 
     bool is_charset_negative = false;
     const NODETYPE type;

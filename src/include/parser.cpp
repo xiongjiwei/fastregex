@@ -32,7 +32,7 @@ AST *Parser::term() {
 }
 
 AST *Parser::repeat() {
-    AST* root = factor();
+    AST *root = factor();
     if (restring.size() > 0 && root != nullptr) {
         if (restring[0] == '*') {
             root = collapse_unary_operator(root, AST::STAR);
@@ -41,19 +41,18 @@ AST *Parser::repeat() {
         } else if (restring[0] == '+') {
             root = collapse_unary_operator(root, AST::PLUS);
         } else if (restring[0] == '{') {
-            maybe_repeat();
+            root = maybe_repeat(root);
         }
     }
     return root;
 }
 
-//todo this implement is not correct, fix it
-void Parser::maybe_repeat() {
+AST *Parser::maybe_repeat(AST *root) {
     if (restring.size() > 0 && restring[0] == '{') {
         restring.remove_prefix();
         int removed_count = 0;
         int low = 0;
-        int high = 0;
+        int high = -1; //fixme should use max_int instead
         while (restring.size() > 0 && restring[0] <= '9' && restring[0] >= '0') {
             low *= 10;
             low += restring[0] - '0';
@@ -61,26 +60,38 @@ void Parser::maybe_repeat() {
             removed_count++;
         }
 
+        if (removed_count == 0) {
+            return root;
+        }
+
         if (restring.size() > 0 && restring[0] == ',') {
             restring.remove_prefix();
             removed_count++;
+        } else {
+            return root;
         }
 
         while (restring.size() > 0 && restring[0] <= '9' && restring[0] >= '0') {
-            high *= 10;
+            high = high == -1 ? 0 : high;
             high += restring[0] - '0';
             restring.remove_prefix();
             removed_count++;
         }
 
         if (restring.size() > 0 && restring[0] == '}') {
+            if (low > high) {
+                return nullptr;
+            }
             restring.remove_prefix();
-
+            auto father = new AST(AST::REPEAT);
+            father->low = low;
+            father->high = high;
+            father->left = root;
+            return father;
         }
-
-    } else {
-        return;
+        restring.remove_prefix(-removed_count);
     }
+    return root;
 }
 
 AST *Parser::factor() {
