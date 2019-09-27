@@ -23,6 +23,7 @@ public:
     AST* charset();
     AST* group();
     AST* chars();
+    AST* sub_char();
 
     AST *maybe_repeat(AST *root);
 
@@ -32,6 +33,14 @@ private:
 
     static AST * collapse_unary_operator(AST *child, AST::NODETYPE type);
     static AST * collapse_binary_operator(AST *left, AST* right, AST::NODETYPE type);
+
+    unsigned char error_code = 0;
+//    const unsigned char base = 1;
+    const unsigned char bad_escape = 1 << 1;
+    const unsigned char bad_parenthesis = 1 << 2;
+    const unsigned char bad_quantifier = 1 << 3;
+    const unsigned char bad_charrange = 1 << 4;
+    const unsigned char bad_square_bracket = 1 << 5;
 };
 
 

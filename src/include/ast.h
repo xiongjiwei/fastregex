@@ -30,7 +30,7 @@ public:
     }
 
     void add_character(char ch) {
-        this->chars.insert(ch);
+        this->charset.insert(ch);
     }
 
     AST *left = nullptr;
@@ -41,7 +41,7 @@ public:
 
     bool is_charset_negative = false;
     const NODETYPE type;
-    std::unordered_set<char> chars;
+    std::unordered_set<char> charset;
 };
 
 

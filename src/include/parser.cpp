@@ -8,13 +8,11 @@ AST *Parser::regex() {
     return nullptr;
 }
 
+//e1 | e2 | e3 | ...
 AST *Parser::exper() {
     auto root = term();
-    if (root == nullptr) {
-        return nullptr;
-    }
 
-    while (restring.size() >= 2 && restring[0] == '|') {
+    while (restring.size() >= 2 && restring[0] == '|' && root != nullptr) {
         restring.remove_prefix();
         root = collapse_binary_operator(root, term(), AST::OR);
     }
@@ -22,6 +20,7 @@ AST *Parser::exper() {
     return root;
 }
 
+//e1*e2+e3?...
 AST *Parser::term() {
     AST *root = repeat();
     while (restring.size() > 0 && restring[0] != '|' && root != nullptr) {
@@ -31,6 +30,7 @@ AST *Parser::term() {
     return root;
 }
 
+//e1*, e2+, e3?, e4{m,n}
 AST *Parser::repeat() {
     AST *root = factor();
     if (restring.size() > 0 && root != nullptr) {
@@ -47,6 +47,7 @@ AST *Parser::repeat() {
     return root;
 }
 
+//e1{m,n}
 AST *Parser::maybe_repeat(AST *root) {
     if (restring.size() > 0 && restring[0] == '{') {
         restring.remove_prefix();
@@ -80,6 +81,7 @@ AST *Parser::maybe_repeat(AST *root) {
 
         if (restring.size() > 0 && restring[0] == '}') {
             if (low > high) {
+                delete root;
                 return nullptr;
             }
             restring.remove_prefix();
@@ -94,6 +96,7 @@ AST *Parser::maybe_repeat(AST *root) {
     return root;
 }
 
+//(e1e2e3)
 AST *Parser::factor() {
     if (restring.size() > 0) {
         if (restring[0] == '(') {
@@ -109,37 +112,39 @@ AST *Parser::factor() {
 
 AST *Parser::group() {
     AST *root = nullptr;
-    if (restring.size() >= 2) {
+    if (restring.size() >= 2 && restring[0] == '(') {
         restring.remove_prefix();
         root = exper();
         if (!(restring.size() >= 1 && restring[0] == ')')) {
-            root = nullptr;
+            error_code |= bad_parenthesis;
+            delete root;
+            return nullptr;
         }
+
+        if (root == nullptr && !error_code) {
+            root = new AST(AST::CHARSET);
+        }
+        restring.remove_prefix();
     }
     return root;
 }
 
 AST *Parser::charset() {
-    AST *root = nullptr;
     if (restring.size() >= 2) {
+        AST* root = new AST(AST::CHARSET);
         restring.remove_prefix();
         bool is_negative = false;
         if (restring[0] == '^') {
             is_negative = true;
             restring.remove_prefix();
         }
-
+        root->is_charset_negative = is_negative;
         while (restring.size() >= 1 && restring[0] != ']') {
-            if (root == nullptr) {
-                root = new AST(AST::CHARSET);
-                root->is_charset_negative = is_negative;
-            }
-
             if (restring.size() >= 4 && restring[1] == '-') {
                 if (restring[0] > restring[2]) {
+                    error_code |= bad_charrange;
                     delete root;
-                    root = nullptr;
-                    break;
+                    return nullptr;
                 }
 
                 for (char ch = restring[0]; ch <= restring[2]; ++ch) {
@@ -153,26 +158,53 @@ AST *Parser::charset() {
         }
 
         if (restring.size() == 0) {
+            error_code |= bad_square_bracket;
             delete root;
-            root = nullptr;
+            return nullptr;
+        }
+        restring.remove_prefix();
+        return root;
+    } else {
+        error_code |= bad_square_bracket;
+        return nullptr;
+    }
+}
+
+AST *Parser::chars() {
+    AST *root = sub_char();
+    while (!error_code && root != nullptr) {
+        auto right = sub_char();
+        if (right == nullptr) {
+            return root;
         } else {
-            restring.remove_prefix();
+            root = collapse_binary_operator(root, right, AST::AND);
         }
     }
 
     return root;
 }
 
-AST *Parser::chars() {
+AST *Parser::sub_char() {
     AST *root = nullptr;
-
-    while (restring.size() > 0 && UNHANDLED_CHAR.find(restring[0]) == UNHANDLED_CHAR.end()) {
-        if (root == nullptr) {
-            root = new AST(AST::NODETYPE::CHARSET);
+    if (restring.size() > 0 && UNHANDLED_CHAR.find(restring[0]) == UNHANDLED_CHAR.end()) {
+        root = new AST(AST::NODETYPE::CHARSET);
+        if (restring[0] == '\\') {
+            restring.remove_prefix();
+            if (restring.size() > 0) {
+                root->add_character(restring[0]);
+            } else {
+                delete root;
+                error_code |= bad_escape;
+                return nullptr;
+            }
+        } else if (restring[0] == '.') {
+            root->is_charset_negative = true;
+        } else {
+            root->add_character(restring[0]);
         }
-        root->add_character(restring[0]);
-    }
 
+        restring.remove_prefix();
+    }
     return root;
 }
 
@@ -188,6 +220,8 @@ AST *Parser::collapse_unary_operator(AST *child, AST::NODETYPE type) {
 
 AST *Parser::collapse_binary_operator(AST *left, AST *right, AST::NODETYPE type) {
     if (left == nullptr || right == nullptr) {
+        delete left;
+        delete right;
         return nullptr;
     }
 
