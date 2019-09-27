@@ -18,12 +18,14 @@ public:
     AST* regex();
     AST* exper();
     AST* term();
+    AST* repeat();
     AST* factor();
     AST* charset();
     AST* group();
     AST* chars();
 
     void maybe_repeat();
+    bool is_digital();
 private:
     REstring& restring;
     const std::unordered_set<char> UNHANDLED_CHAR = {'*', '+', '?', ')', '|',};

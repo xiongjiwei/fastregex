@@ -23,8 +23,17 @@ AST *Parser::exper() {
 }
 
 AST *Parser::term() {
-    AST *root = factor();
+    AST *root = repeat();
     while (restring.size() > 0 && restring[0] != '|' && root != nullptr) {
+        root = collapse_binary_operator(root, repeat(), AST::AND);
+    }
+
+    return root;
+}
+
+AST *Parser::repeat() {
+    AST* root = factor();
+    if (restring.size() > 0 && root != nullptr) {
         if (restring[0] == '*') {
             root = collapse_unary_operator(root, AST::STAR);
         } else if (restring[0] == '?') {
@@ -33,16 +42,45 @@ AST *Parser::term() {
             root = collapse_unary_operator(root, AST::PLUS);
         } else if (restring[0] == '{') {
             maybe_repeat();
-        } else {
-            root = collapse_binary_operator(root, factor(), AST::AND);
         }
     }
-
     return root;
 }
 
+//todo this implement is not correct, fix it
 void Parser::maybe_repeat() {
+    if (restring.size() > 0 && restring[0] == '{') {
+        restring.remove_prefix();
+        int removed_count = 0;
+        int low = 0;
+        int high = 0;
+        while (restring.size() > 0 && restring[0] <= '9' && restring[0] >= '0') {
+            low *= 10;
+            low += restring[0] - '0';
+            restring.remove_prefix();
+            removed_count++;
+        }
 
+        if (restring.size() > 0 && restring[0] == ',') {
+            restring.remove_prefix();
+            removed_count++;
+        }
+
+        while (restring.size() > 0 && restring[0] <= '9' && restring[0] >= '0') {
+            high *= 10;
+            high += restring[0] - '0';
+            restring.remove_prefix();
+            removed_count++;
+        }
+
+        if (restring.size() > 0 && restring[0] == '}') {
+            restring.remove_prefix();
+
+        }
+
+    } else {
+        return;
+    }
 }
 
 AST *Parser::factor() {
