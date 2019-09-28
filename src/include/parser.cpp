@@ -15,7 +15,7 @@ AST *Parser::exper() {
     while (restring.size() > 0 && restring[0] == '|' && root != nullptr) {
         restring.remove_prefix();
         if (restring.size() == 0 || restring[0] == '|') {
-            error_code |= bad_alternation;
+            set_error_code(bad_alternation);
             delete root;
             return nullptr;
         }
@@ -29,7 +29,7 @@ AST *Parser::exper() {
 AST *Parser::term() {
 
     if (restring.size() > 0 && (restring[0] == '*' || restring[0] == '+' || restring[0] == '?')) {
-        error_code |= bad_quantifier;
+        set_error_code(bad_quantifier);
         return nullptr;
     }
 
@@ -127,7 +127,7 @@ AST *Parser::group() {
         restring.remove_prefix();
         root = exper();
         if (!(restring.size() >= 1 && restring[0] == ')')) {
-            error_code |= bad_parenthesis;
+            set_error_code(bad_parenthesis);
             delete root;
             return nullptr;
         }
@@ -142,7 +142,7 @@ AST *Parser::group() {
 
 AST *Parser::charset() {
     if (restring.size() >= 2) {
-        AST* root = new AST(AST::CHARSET);
+        AST *root = new AST(AST::CHARSET);
         restring.remove_prefix();
         bool is_negative = false;
         if (restring[0] == '^') {
@@ -153,7 +153,7 @@ AST *Parser::charset() {
         while (restring.size() >= 1 && restring[0] != ']') {
             if (restring.size() >= 4 && restring[1] == '-') {
                 if (restring[0] > restring[2]) {
-                    error_code |= bad_charrange;
+                    set_error_code(bad_charrange);
                     delete root;
                     return nullptr;
                 }
@@ -169,14 +169,14 @@ AST *Parser::charset() {
         }
 
         if (restring.size() == 0) {
-            error_code |= bad_square_bracket;
+            set_error_code(bad_square_bracket);
             delete root;
             return nullptr;
         }
         restring.remove_prefix();
         return root;
     } else {
-        error_code |= bad_square_bracket;
+        set_error_code(bad_square_bracket);
         return nullptr;
     }
 }
@@ -186,12 +186,12 @@ AST *Parser::chars() {
     if (restring.size() > 0 && UNHANDLED_CHAR.find(restring[0]) == UNHANDLED_CHAR.end()) {
         root = new AST(AST::NODETYPE::CHARSET);
         if (restring[0] == '\\') {
-            restring.remove_prefix();
-            if (restring.size() > 0) {
-                root->add_character(restring[0]);
+            int char_code = process_escape();
+            if (char_code != -1) {
+                root->add_character((char) char_code);
             } else {
                 delete root;
-                error_code |= bad_escape;
+                set_error_code(bad_escape);
                 return nullptr;
             }
         } else if (restring[0] == '.') {
@@ -227,4 +227,38 @@ AST *Parser::collapse_binary_operator(AST *left, AST *right, AST::NODETYPE type)
     root->left = left;
     root->right = right;
     return root;
+}
+
+int Parser::process_escape() {
+    restring.remove_prefix(); // remove \
+
+    if (restring.size() > 0) {
+        if (restring[0] == 'x') {
+            restring.remove_prefix();
+            if (restring.size() > 0 && is_HEX_digital(restring[0])) {
+                int code = UnHex(restring[0]);  //first hex number
+                restring.remove_prefix();
+                if (restring.size() > 0 && is_HEX_digital(restring[0])) {
+                    code = code * 16 + UnHex(restring[0]); //second hex number
+                    restring.remove_prefix();
+                }
+                return code;
+            } else {
+                return 0; // \x match code point 0
+            }
+        } else {
+            if (is_OTC_digital(restring[0])) {
+                int code = 0;
+                while (is_HEX_digital(restring[0]) && code < 256) {
+                    code = code * 8 + restring[0] - '0';
+                    restring.remove_prefix();
+                }
+                return code;
+            } else {
+                return restring[0];
+            }
+        }
+    } else {
+        return -1;
+    }
 }
