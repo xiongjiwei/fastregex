@@ -75,10 +75,21 @@ AST *Parser::maybe_repeat(AST *root) {
             return root;
         }
 
-        if (restring.size() > 0 && restring[0] == ',') {
-            restring.remove_prefix();
-            removed_count++;
+        //todo e{m},e{m,},e{m,n} are all right form
+        if (restring.size() > 0) {
+            if (restring[0] == ',') {
+                restring.remove_prefix();
+                removed_count++;
+            } else if (restring[0] == '}') {
+                high = low;
+                restring.remove_prefix();
+                removed_count++;
+            } else {
+                restring.remove_prefix(-removed_count);
+                return root;
+            }
         } else {
+            restring.remove_prefix(-removed_count);
             return root;
         }
 

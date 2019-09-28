@@ -58,7 +58,6 @@ private:
     }
 
     unsigned char error_code = 0;
-//    const unsigned char base = 1;
     const unsigned char bad_escape = 1 << 1;
     const unsigned char bad_parenthesis = 1 << 2;
     const unsigned char bad_quantifier = 1 << 3;
