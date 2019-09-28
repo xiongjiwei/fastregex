@@ -42,6 +42,7 @@ public:
     bool is_charset_negative = false;
     const NODETYPE type;
     std::unordered_set<char> charset;
+private:
 };
 
 

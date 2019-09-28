@@ -3,21 +3,53 @@
 //
 
 #define CATCH_CONFIG_MAIN
+
 #include "catch.hpp"
 #include "../src/include/restring.h"
 
-TEST_CASE("should return the size of string", "[string size]") {
-    std::string string = "a template re string";
+TEST_CASE("should return the right size of string", "[restring][size]") {
+    std::string string = "this is a template re string";
     REstring restring(string);
+    SECTION("should get right size and char") {
+        CHECK(string.size() == restring.size());
+        CHECK('t' == restring[0]);
+        CHECK('i' == restring[2]);
+        CHECK('i' == restring[5]);
+    }
 
-    CHECK(string.size() == restring.size());
-}
+    SECTION("should get the last char when index is greater than restring size") {
+        CHECK('g' == restring[50]);
+    }
 
-TEST_CASE("should return the correct char", "[char]") {
-    size_t a = 10;
-    size_t b = 20;
+    restring.remove_prefix();
+    SECTION("should get right size and char when remove_prefix with default argument") {
+        CHECK(string.size() - 1 == restring.size());
+        CHECK('h' == restring[0]);
+        CHECK('i' == restring[1]);
+        CHECK('i' == restring[4]);
+    }
 
-    size_t c = a - b;
+    restring.remove_prefix(2);
+    SECTION("should get right size and char when remove_prefix with positive argument") {
+        CHECK(string.size() - 3 == restring.size());
+        CHECK('i' == restring[2]);
+    }
 
-    CHECK(-10 == c);
+    restring.remove_prefix(-1);
+    SECTION("should get right size and char when remove_prefix with negative argument") {
+        CHECK(string.size() - 2 == restring.size());
+        CHECK('i' == restring[0]);
+        CHECK('i' == restring[3]);
+    }
+
+    restring.remove_prefix(50);
+    SECTION("should return 0 when remove_prefix with argument greater than restring remainder") {
+        CHECK(0 == restring.size());
+    }
+
+    SECTION("should get the last char when remove_prefix with argument greater than restring remainder") {
+        CHECK('g' == restring[0]);
+        CHECK('g' == restring[2]);
+        CHECK('g' == restring[5]);
+    }
 }

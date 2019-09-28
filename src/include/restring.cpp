@@ -9,5 +9,5 @@ void REstring::remove_prefix(int count) {
 }
 
 size_t REstring::size() const {
-    return pattern.size() - cur_index > 0 ? pattern.size() - cur_index : 0;
+    return pattern.size() >= cur_index ? pattern.size() - cur_index : 0;
 }
