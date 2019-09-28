@@ -23,7 +23,6 @@ public:
     AST* charset();
     AST* group();
     AST* chars();
-    AST* sub_char();
 
     AST *maybe_repeat(AST *root);
 
@@ -41,6 +40,7 @@ private:
     const unsigned char bad_quantifier = 1 << 3;
     const unsigned char bad_charrange = 1 << 4;
     const unsigned char bad_square_bracket = 1 << 5;
+    const unsigned char bad_alternation = 1 << 6;
 };
 
 

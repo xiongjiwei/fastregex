@@ -12,8 +12,13 @@ AST *Parser::regex() {
 AST *Parser::exper() {
     auto root = term();
 
-    while (restring.size() >= 2 && restring[0] == '|' && root != nullptr) {
+    while (restring.size() > 0 && restring[0] == '|' && root != nullptr) {
         restring.remove_prefix();
+        if (restring.size() == 0 || restring[0] == '|') {
+            error_code |= bad_alternation;
+            delete root;
+            return nullptr;
+        }
         root = collapse_binary_operator(root, term(), AST::OR);
     }
 
@@ -22,6 +27,12 @@ AST *Parser::exper() {
 
 //e1*e2+e3?...
 AST *Parser::term() {
+
+    if (restring.size() > 0 && (restring[0] == '*' || restring[0] == '+' || restring[0] == '?')) {
+        error_code |= bad_quantifier;
+        return nullptr;
+    }
+
     AST *root = repeat();
     while (restring.size() > 0 && restring[0] != '|' && root != nullptr) {
         root = collapse_binary_operator(root, repeat(), AST::AND);
@@ -33,7 +44,7 @@ AST *Parser::term() {
 //e1*, e2+, e3?, e4{m,n}
 AST *Parser::repeat() {
     AST *root = factor();
-    if (restring.size() > 0 && root != nullptr) {
+    if (restring.size() > 0 && root != nullptr && !error_code) {
         if (restring[0] == '*') {
             root = collapse_unary_operator(root, AST::STAR);
         } else if (restring[0] == '?') {
@@ -98,7 +109,7 @@ AST *Parser::maybe_repeat(AST *root) {
 
 //(e1e2e3)
 AST *Parser::factor() {
-    if (restring.size() > 0) {
+    if (restring.size() > 0 && !error_code) {
         if (restring[0] == '(') {
             return group();
         } else if (restring[0] == '[') {
@@ -171,20 +182,6 @@ AST *Parser::charset() {
 }
 
 AST *Parser::chars() {
-    AST *root = sub_char();
-    while (!error_code && root != nullptr) {
-        auto right = sub_char();
-        if (right == nullptr) {
-            return root;
-        } else {
-            root = collapse_binary_operator(root, right, AST::AND);
-        }
-    }
-
-    return root;
-}
-
-AST *Parser::sub_char() {
     AST *root = nullptr;
     if (restring.size() > 0 && UNHANDLED_CHAR.find(restring[0]) == UNHANDLED_CHAR.end()) {
         root = new AST(AST::NODETYPE::CHARSET);
@@ -205,6 +202,7 @@ AST *Parser::sub_char() {
 
         restring.remove_prefix();
     }
+
     return root;
 }
 
