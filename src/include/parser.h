@@ -7,6 +7,7 @@
 
 
 #include <unordered_set>
+#include <vector>
 #include "restring.h"
 #include "nfa.h"
 #include "ast.h"

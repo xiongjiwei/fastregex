@@ -21,7 +21,6 @@ AST *Parser::exper() {
         }
         root = collapse_binary_operator(root, term(), AST::OR);
     }
-
     return root;
 }
 
@@ -150,31 +149,56 @@ AST *Parser::charset() {
             restring.remove_prefix();
         }
         root->is_charset_negative = is_negative;
-        while (restring.size() >= 1 && restring[0] != ']') {
-            if (restring.size() >= 4 && restring[1] == '-') {
-                if (restring[0] > restring[2]) {
-                    set_error_code(bad_charrange);
+        std::vector<char> stake; // use -2 instead operator '-'
+
+        while (restring.size() >= 1) {
+            if (restring[0] == ']') {
+                restring.remove_prefix();
+                for (int i = 0; i < int(stake.size()); ++i) {
+                    if (stake.size() - i >= 3) {  //maybe have a '-'
+                        if (stake[i + 1] == -2) { //yes, it have a '-'
+                            if (stake[i] <= stake[i + 2]) {// left char point should no-greater than right char point
+                                for (int j = stake[i + 1]; j < stake[i + 2]; ++j) {
+                                    root->add_character(char(j));
+                                }
+                                i += 2; //move i forward 3 step
+                            } else { //bad char range
+                                set_error_code(bad_charrange);
+                                delete root;
+                                return nullptr;
+                            }
+                        } else { //no, it doesn't have a '-'
+                            root->add_character(stake[i] == -2 ? '-'
+                                                               : stake[i]); //if stake[i] == -2, it means this is a '-' character
+                        }
+                    } else { //no, the stake size is less than 3
+                        root->add_character(
+                                stake[i] == -2 ? '-' : stake[i]); //if stake[i] == -2, it means this is a '-' character
+                    }
+                }
+                return root;
+            }
+            if (restring[0] == '\\') {
+                int s = process_escape();
+                if (s == -1) {
                     delete root;
+                    set_error_code(bad_escape);
                     return nullptr;
                 }
-
-                for (char ch = restring[0]; ch <= restring[2]; ++ch) {
-                    root->add_character(ch);
-                }
-                restring.remove_prefix(3);
+                stake.push_back(char(s));
+            } else if (restring[0] == '-') {
+                stake.push_back(-2); // use -2 instead operator '-'
+                restring.remove_prefix();
             } else {
-                root->add_character(restring[0]);
+                stake.push_back(restring[0]);
                 restring.remove_prefix();
             }
         }
 
-        if (restring.size() == 0) {
-            set_error_code(bad_square_bracket);
-            delete root;
-            return nullptr;
-        }
-        restring.remove_prefix();
-        return root;
+        set_error_code(bad_square_bracket);
+        delete root;
+        return nullptr;
+
     } else {
         set_error_code(bad_square_bracket);
         return nullptr;
