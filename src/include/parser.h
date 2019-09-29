@@ -27,6 +27,17 @@ public:
 
     AST *maybe_repeat(AST *root);
 
+    static const unsigned char bad_escape = 1 << 1;
+    static const unsigned char bad_parenthesis = 1 << 2;
+    static const unsigned char bad_quantifier = 1 << 3;
+    static const unsigned char bad_charrange = 1 << 4;
+    static const unsigned char bad_square_bracket = 1 << 5;
+    static const unsigned char bad_alternation = 1 << 6;
+
+    bool get_error_code(unsigned char code) const {
+        return (error_code & code) == 1;
+    }
+
 private:
     REstring& restring;
     const std::unordered_set<char> UNHANDLED_CHAR = {'*', '+', '?', ')', '|',};
@@ -58,12 +69,6 @@ private:
     }
 
     unsigned char error_code = 0;
-    const unsigned char bad_escape = 1 << 1;
-    const unsigned char bad_parenthesis = 1 << 2;
-    const unsigned char bad_quantifier = 1 << 3;
-    const unsigned char bad_charrange = 1 << 4;
-    const unsigned char bad_square_bracket = 1 << 5;
-    const unsigned char bad_alternation = 1 << 6;
 };
 
 
