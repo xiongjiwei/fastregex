@@ -2,6 +2,7 @@
 // Created by admin on 2019/9/23.
 //
 
+#include <climits>
 #include "parser.h"
 
 AST *Parser::regex() {
@@ -63,7 +64,7 @@ AST *Parser::maybe_repeat(AST *root) {
         restring.remove_prefix();
         int removed_count = 0;
         int low = 0;
-        int high = -1; //fixme should use max_int instead
+        int high = INT_MAX;
         while (restring.size() > 0 && restring[0] <= '9' && restring[0] >= '0') {
             low *= 10;
             low += restring[0] - '0';
@@ -75,18 +76,18 @@ AST *Parser::maybe_repeat(AST *root) {
             return root;
         }
 
-        //todo e{m},e{m,},e{m,n} are all right form
-        if (restring.size() > 0) {
+        if (restring.size() > 0 && (restring[0] == ',' || restring[0] == '}')) {
             if (restring[0] == ',') {
                 restring.remove_prefix();
                 removed_count++;
-            } else if (restring[0] == '}') {
+            } else {
                 high = low;
                 restring.remove_prefix();
-                removed_count++;
-            } else {
-                restring.remove_prefix(-removed_count);
-                return root;
+                auto father = new AST(AST::REPEAT);
+                father->low = low;
+                father->high = high;
+                father->left = root;
+                return father;
             }
         } else {
             restring.remove_prefix(-removed_count);
@@ -94,7 +95,7 @@ AST *Parser::maybe_repeat(AST *root) {
         }
 
         while (restring.size() > 0 && restring[0] <= '9' && restring[0] >= '0') {
-            high = high == -1 ? 0 : high;
+            high = high == INT_MAX ? 0 : high;
             high += restring[0] - '0';
             restring.remove_prefix();
             removed_count++;
