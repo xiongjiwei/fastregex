@@ -21,33 +21,32 @@ TEST_CASE("should return the right size of string", "[restring][size]") {
         CHECK('g' == restring[50]);
     }
 
-    restring.remove_prefix();
     SECTION("should get right size and char when remove_prefix with default argument") {
+        restring.remove_prefix();
         CHECK(string.size() - 1 == restring.size());
         CHECK('h' == restring[0]);
         CHECK('i' == restring[1]);
         CHECK('i' == restring[4]);
     }
 
-    restring.remove_prefix(2);
     SECTION("should get right size and char when remove_prefix with positive argument") {
-        CHECK(string.size() - 3 == restring.size());
-        CHECK('i' == restring[2]);
-    }
-
-    restring.remove_prefix(-1);
-    SECTION("should get right size and char when remove_prefix with negative argument") {
+        restring.remove_prefix(2);
         CHECK(string.size() - 2 == restring.size());
         CHECK('i' == restring[0]);
         CHECK('i' == restring[3]);
     }
 
-    restring.remove_prefix(50);
-    SECTION("should return 0 when remove_prefix with argument greater than restring remainder") {
-        CHECK(0 == restring.size());
+    SECTION("should get right size and char when remove_prefix with negative argument") {
+        restring.remove_prefix(3);
+        restring.remove_prefix(-1);
+        CHECK(string.size() - 2 == restring.size());
+        CHECK('i' == restring[0]);
+        CHECK('i' == restring[3]);
     }
 
-    SECTION("should get the last char when remove_prefix with argument greater than restring remainder") {
+    SECTION("should return 0 and get last char when remove_prefix with argument greater than restring remainder") {
+        restring.remove_prefix(50);
+        CHECK(0 == restring.size());
         CHECK('g' == restring[0]);
         CHECK('g' == restring[2]);
         CHECK('g' == restring[5]);
