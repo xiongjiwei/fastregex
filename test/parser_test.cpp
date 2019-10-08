@@ -6,13 +6,14 @@
 #include "../src/include/parser.h"
 
 TEST_CASE("chars() method should build correct AST by give regular expression") {
-    REstring restring(R"(f)\)\4\x\x10.)");
+    std::string string = R"(f\)\4\x\x10.\)";
+    REstring restring(string);
     Parser parser(restring);
     std::vector<AST *> results;
     SECTION("match the pattern") {
         WHEN("restring moved forward") {
+            auto test_ast = parser.chars();
             AND_WHEN("chars() method meet a normal char") {
-                auto test_ast = parser.chars();
                 std::unordered_set<char> test_charset = {'f'};
 
                 THEN("build a normal char AST") {
@@ -22,17 +23,8 @@ TEST_CASE("chars() method should build correct AST by give regular expression") 
                 }
             }
 
-            AND_WHEN("chars() method meet a wrong parenthesis") {
-                auto test_ast = parser.chars();
-
-                THEN("get an error") {
-                    CHECK(test_ast == nullptr);
-                    CHECK(parser.get_error_code(Parser::bad_parenthesis));
-                }
-            }
-
+            test_ast = parser.chars();
             AND_WHEN("chars() method meet a escape character") {
-                auto test_ast = parser.chars();
                 std::unordered_set<char> test_charset = {')'};
 
                 THEN("build a normal char AST") {
@@ -42,8 +34,8 @@ TEST_CASE("chars() method should build correct AST by give regular expression") 
                 }
             }
 
+            test_ast = parser.chars();
             AND_WHEN("chars() method meet a escape otc character") {
-                auto test_ast = parser.chars();
                 std::unordered_set<char> test_charset = {04};
 
                 THEN("build an otc code point AST") {
@@ -53,8 +45,8 @@ TEST_CASE("chars() method should build correct AST by give regular expression") 
                 }
             }
 
+            test_ast = parser.chars();
             AND_WHEN("chars() method meet a escape hex character without code point") {
-                auto test_ast = parser.chars();
                 std::unordered_set<char> test_charset = {0x0};
 
                 THEN("build a 0 hex code point AST") {
@@ -64,8 +56,8 @@ TEST_CASE("chars() method should build correct AST by give regular expression") 
                 }
             }
 
+            test_ast = parser.chars();
             AND_WHEN("chars() method meet a escape hex character with code point") {
-                auto test_ast = parser.chars();
                 std::unordered_set<char> test_charset = {0x10};
 
                 THEN("build a hex code point AST") {
@@ -75,8 +67,8 @@ TEST_CASE("chars() method should build correct AST by give regular expression") 
                 }
             }
 
+            test_ast = parser.chars();
             AND_WHEN("chars() method meet a dot") {
-                auto test_ast = parser.chars();
                 std::unordered_set<char> test_charset = {};
 
                 THEN("build an any char AST") {
@@ -85,15 +77,24 @@ TEST_CASE("chars() method should build correct AST by give regular expression") 
                     results.push_back(test_ast);
                 }
             }
+
+            test_ast = parser.chars();
+            AND_WHEN("chars() method meet a bad escape") {
+                THEN("get an error") {
+                    CHECK(test_ast == nullptr);
+                    CHECK(parser.get_error_code(Parser::bad_escape));
+                }
+            }
         }
 
-        SECTION("check other attribute") {
+        WHEN("check other attribute") {
             for (auto item: results) {
                 CHECK(item->high == 0);
                 CHECK(item->low == 0);
                 CHECK(item->left == nullptr);
                 CHECK(item->right == nullptr);
                 CHECK(item->type == AST::CHARSET);
+                delete item;
             }
         }
     }

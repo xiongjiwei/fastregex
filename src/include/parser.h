@@ -35,7 +35,7 @@ public:
     static const unsigned char bad_alternation = 1 << 6;
 
     bool get_error_code(unsigned char code) const {
-        return (error_code & code) == 1;
+        return (error_code & code) != 0;
     }
 
 private:

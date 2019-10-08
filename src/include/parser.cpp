@@ -232,11 +232,11 @@ AST *Parser::chars() {
             }
         } else if (restring[0] == '.') {
             root->is_charset_negative = true;
+            restring.remove_prefix();
         } else {
             root->add_character(restring[0]);
+            restring.remove_prefix();
         }
-
-        restring.remove_prefix();
     }
 
     return root;
@@ -291,7 +291,9 @@ int Parser::process_escape() {
                 }
                 return code;
             } else {
-                return restring[0];
+                char t = restring[0];
+                restring.remove_prefix();
+                return t;
             }
         }
     } else {
