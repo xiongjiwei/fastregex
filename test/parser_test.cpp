@@ -3,6 +3,7 @@
 //
 
 #include "catch.hpp"
+#include <climits>
 #include "../src/include/parser.h"
 
 TEST_CASE("chars() method should build correct AST by given regular expression") {
@@ -102,11 +103,12 @@ TEST_CASE("chars() method should build correct AST by given regular expression")
 
 TEST_CASE("charset() method should build correct AST by given regular expression") {
     GIVEN("charset regex") {
-        std::string string = "[abc]";
+        std::string string;
         REstring restring(string);
         Parser parser(restring);
 
-        WHEN("building") {
+        WHEN("regex is normal charset") {
+            string = "[abc]";
             auto test_ret = parser.charset();
             std::unordered_set<char> test_charset = {'a', 'b', 'c'};
             THEN("should return a charset type AST with abc") {
@@ -115,14 +117,9 @@ TEST_CASE("charset() method should build correct AST by given regular expression
                 CHECK_FALSE(test_ret->is_charset_negative);
             }
         }
-    }
 
-    GIVEN("charset regex with range") {
-        std::string string = "[a-zA-Z]";
-        REstring restring(string);
-        Parser parser(restring);
-
-        WHEN("building") {
+        WHEN("regex is range") {
+            string = "[a-zA-Z]";
             auto test_ret = parser.charset();
             std::unordered_set<char> test_charset = {};
             for (char i = 'a'; i <= 'z'; ++i) {
@@ -137,28 +134,18 @@ TEST_CASE("charset() method should build correct AST by given regular expression
                 CHECK_FALSE(test_ret->is_charset_negative);
             }
         }
-    }
 
-    GIVEN("charset regex with wrong range") {
-        std::string string = "[z-a]";
-        REstring restring(string);
-        Parser parser(restring);
-
-        WHEN("building") {
+        WHEN("regex is illegal range") {
+            string = "[z-a]";
             auto test_ret = parser.charset();
             THEN("should return null and set error code bad_charrange") {
                 CHECK(test_ret == nullptr);
                 CHECK(parser.get_error_code(Parser::bad_charrange));
             }
         }
-    }
 
-    GIVEN("charset regex with char '-'") {
-        std::string string = "[a-zA-]";
-        REstring restring(string);
-        Parser parser(restring);
-
-        WHEN("building") {
+        WHEN("regex with a '-'") {
+            string = "[a-zA-]";
             auto test_ret = parser.charset();
             std::unordered_set<char> test_charset = {};
             for (char i = 'a'; i <= 'z'; ++i) {
@@ -172,14 +159,9 @@ TEST_CASE("charset() method should build correct AST by given regular expression
                 CHECK_FALSE(test_ret->is_charset_negative);
             }
         }
-    }
 
-    GIVEN("charset regex with escape") {
-        std::string string = R"([\a\x-\x4)\-])";
-        REstring restring(string);
-        Parser parser(restring);
-
-        WHEN("building") {
+        WHEN("regex with escape") {
+            string = R"([\a\x-\x4)\-])";
             auto test_ret = parser.charset();
             std::unordered_set<char> test_charset = {};
             for (char i = 0; i <= 4; ++i) {
@@ -194,14 +176,10 @@ TEST_CASE("charset() method should build correct AST by given regular expression
                 CHECK_FALSE(test_ret->is_charset_negative);
             }
         }
-    }
 
-    GIVEN("charset regex with negative") {
-        std::string string = "[^a-c]";
-        REstring restring(string);
-        Parser parser(restring);
 
-        WHEN("building") {
+        WHEN("regex with negative") {
+            string = "[^a-c]";
             auto test_ret = parser.charset();
             std::unordered_set<char> test_charset = {};
             for (char i = 'a'; i <= 'c'; ++i) {
@@ -213,14 +191,19 @@ TEST_CASE("charset() method should build correct AST by given regular expression
                 CHECK(test_ret->is_charset_negative);
             }
         }
-    }
 
-    GIVEN("charset regex with bad square bracket") {
-        std::string string = "[a-cA-Z";
-        REstring restring(string);
-        Parser parser(restring);
+        WHEN("regex with bad square bracket") {
+            string = "[a-cA-Z";
+            auto test_ret = parser.charset();
+            THEN("should return a charset type AST with abc") {
+                CHECK(test_ret == nullptr);
+                CHECK((parser.get_error_code(Parser::bad_square_bracket)));
+            }
+        }
 
-        WHEN("building") {
+
+        WHEN("regex with bad escape") {
+            string = "[a-cA-Z\\]";
             auto test_ret = parser.charset();
             THEN("should return a charset type AST with abc") {
                 CHECK(test_ret == nullptr);
@@ -228,17 +211,150 @@ TEST_CASE("charset() method should build correct AST by given regular expression
             }
         }
     }
+}
 
-    GIVEN("charset regex with bad escape") {
-        std::string string = "[a-cA-Z\\]";
+//TEST_CASE("group() method should build correct AST by given regular expression") {
+//    GIVEN("group regex") {
+//        std::string string = "(a)";
+//        REstring restring(string);
+//        Parser parser(restring);
+//        std::unordered_set<char> test_charset = {'a'};
+//
+//        WHEN("building") {
+//            auto test_ret = parser.group();
+//            THEN("should return a charset type AST with a") {
+//                CHECK(test_ret->type == AST::CHARSET);
+//                CHECK(test_ret->charset == test_charset);
+//            }
+//        }
+//    }
+//}
+
+TEST_CASE("factor() method should build correct AST by given regular expression") {
+    GIVEN("factor regex") {
+        std::string string;
         REstring restring(string);
         Parser parser(restring);
 
-        WHEN("building") {
-            auto test_ret = parser.charset();
+        WHEN("regex with normal char") {
+            string = "a";
+            auto test_ret = parser.factor();
+            THEN("should return a charset type AST with a") {
+                CHECK(test_ret->type == AST::CHARSET);
+                CHECK(test_ret->charset == std::unordered_set<char>{'a'});
+            }
+        }
+
+
+        WHEN("regex with charset") {
+            string = "[abc]";
+            auto test_ret = parser.factor();
             THEN("should return a charset type AST with abc") {
+                CHECK(test_ret->type == AST::CHARSET);
+                CHECK(test_ret->charset == std::unordered_set<char>{'a', 'b', 'c'});
+            }
+        }
+
+        WHEN("regex with group") {
+            string = "(a)";
+            auto test_ret = parser.factor();
+            THEN("should return a charset type AST with a") {
+                CHECK(test_ret->type == AST::CHARSET);
+                CHECK(test_ret->charset == std::unordered_set<char>{'a'});
+            }
+        }
+
+
+        WHEN("illegal factor regex") {
+            auto test_ret = parser.factor();
+            THEN("should return null") {
                 CHECK(test_ret == nullptr);
-                CHECK((parser.get_error_code(Parser::bad_square_bracket)));
+            }
+        }
+    }
+}
+
+TEST_CASE("repeat() method should build correct AST by given regular expression") {
+    GIVEN("repeat regex") {
+        std::string string;
+        REstring restring(string);
+        Parser parser(restring);
+
+        WHEN("regex with star") {
+            string = "a*";
+            auto test_ret = parser.repeat();
+            THEN("should return a star type AST") {
+                CHECK(test_ret->type == AST::STAR);
+                CHECK(test_ret->left->type == AST::CHARSET);
+            }
+        }
+
+        WHEN("regex with {m}") {
+            string = "b{2}";
+            auto test_ret = parser.repeat();
+            THEN("should return a repeat type AST") {
+                CHECK(test_ret->type == AST::REPEAT);
+                CHECK(test_ret->low == 2);
+                CHECK(test_ret->high == 2);
+                CHECK(test_ret->left->type == AST::CHARSET);
+            }
+        }
+
+        WHEN("regex with {m,}") {
+            string = "b{2,}";
+            auto test_ret = parser.repeat();
+            THEN("should return a repeat type AST") {
+                CHECK(test_ret->type == AST::REPEAT);
+                CHECK(test_ret->low == 2);
+                CHECK(test_ret->high == INT_MAX);
+                CHECK(test_ret->left->type == AST::CHARSET);
+            }
+        }
+
+        WHEN("regex with {m,n}") {
+            string = "b{2,5}";
+            auto test_ret = parser.repeat();
+            THEN("should return a repeat type AST") {
+                CHECK(test_ret->type == AST::REPEAT);
+                CHECK(test_ret->low == 2);
+                CHECK(test_ret->high == 5);
+                CHECK(test_ret->left->type == AST::CHARSET);
+            }
+        }
+
+        WHEN("illegal range") {
+            string = "b{20,5}";
+            auto test_ret = parser.repeat();
+            THEN("should return a repeat type AST") {
+                CHECK(test_ret == nullptr);
+                CHECK(parser.get_error_code(Parser::bad_quantifier));
+            }
+        }
+
+        WHEN("no left") {
+            string = "b{,5}";
+            auto test_ret = parser.repeat();
+            THEN("should return a repeat type AST") {
+                CHECK(test_ret->type == AST::CHARSET);
+                CHECK(restring.size() == 4);
+            }
+        }
+
+        WHEN("not repeat") {
+            string = "b{1,5";
+            auto test_ret = parser.repeat();
+            THEN("should return a repeat type AST") {
+                CHECK(test_ret->type == AST::CHARSET);
+                CHECK(restring.size() == 4);
+            }
+        }
+
+        WHEN("not repeat") {
+            string = "b{-,5}";
+            auto test_ret = parser.repeat();
+            THEN("should return a repeat type AST") {
+                CHECK(test_ret->type == AST::CHARSET);
+                CHECK(restring.size() == 5);
             }
         }
     }

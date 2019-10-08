@@ -64,6 +64,7 @@ AST *Parser::maybe_repeat(AST *root) {
         restring.remove_prefix();
         int removed_count = 0;
         int low = 0;
+
         int high = INT_MAX;
         while (restring.size() > 0 && restring[0] <= '9' && restring[0] >= '0') {
             low *= 10;
@@ -103,6 +104,7 @@ AST *Parser::maybe_repeat(AST *root) {
 
         if (restring.size() > 0 && restring[0] == '}') {
             if (low > high) {
+                set_error_code(bad_quantifier);
                 delete root;
                 return nullptr;
             }
