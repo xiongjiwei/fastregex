@@ -152,8 +152,9 @@ AST *Parser::group() {
 }
 
 AST *Parser::charset() {
+    AST *root = nullptr;
     if (restring.size() >= 2) {
-        AST *root = new AST(AST::CHARSET);
+        root = new AST(AST::CHARSET);
         restring.remove_prefix();
         bool is_negative = false;
         if (restring[0] == '^') {
@@ -167,23 +168,18 @@ AST *Parser::charset() {
             if (restring[0] == ']') {
                 restring.remove_prefix();
                 for (int i = 0; i < int(stake.size()); ++i) {
-                    if (stake.size() - i >= 3) {  //maybe have a '-'
-                        if (stake[i + 1] == -2) { //yes, it have a '-'
-                            if (stake[i] <= stake[i + 2]) {// left char point should no-greater than right char point
-                                for (int j = stake[i + 1]; j < stake[i + 2]; ++j) {
-                                    root->add_character(char(j));
-                                }
-                                i += 2; //move i forward 3 step
-                            } else { //bad char range
-                                set_error_code(bad_charrange);
-                                delete root;
-                                return nullptr;
+                    if (stake.size() - i >= 3 && stake[i + 1] == -2) {  //we have a '-' in mid
+                        if (stake[i] <= stake[i + 2]) {// left char point should no-greater than right char point
+                            for (int j = stake[i]; j <= stake[i + 2]; ++j) {
+                                root->add_character(char(j));
                             }
-                        } else { //no, it doesn't have a '-'
-                            root->add_character(stake[i] == -2 ? '-'
-                                                               : stake[i]); //if stake[i] == -2, it means this is a '-' character
+                            i += 2; //move i forward 3 step
+                        } else { //bad char range
+                            set_error_code(bad_charrange);
+                            delete root;
+                            return nullptr;
                         }
-                    } else { //no, the stake size is less than 3
+                    } else { //we do not have a '-' in mid
                         root->add_character(
                                 stake[i] == -2 ? '-' : stake[i]); //if stake[i] == -2, it means this is a '-' character
                     }
@@ -192,7 +188,7 @@ AST *Parser::charset() {
             }
             if (restring[0] == '\\') {
                 int s = process_escape();
-                if (s == -1) {
+                if (s == -1) { // bad escape char
                     delete root;
                     set_error_code(bad_escape);
                     return nullptr;
@@ -206,15 +202,11 @@ AST *Parser::charset() {
                 restring.remove_prefix();
             }
         }
-
-        set_error_code(bad_square_bracket);
-        delete root;
-        return nullptr;
-
-    } else {
-        set_error_code(bad_square_bracket);
-        return nullptr;
     }
+
+    set_error_code(bad_square_bracket);
+    delete root;
+    return nullptr;
 }
 
 AST *Parser::chars() {
@@ -265,6 +257,7 @@ AST *Parser::collapse_binary_operator(AST *left, AST *right, AST::NODETYPE type)
     return root;
 }
 
+/// \return the escape character code point, -1 means wrong
 int Parser::process_escape() {
     restring.remove_prefix(); // remove \
 
