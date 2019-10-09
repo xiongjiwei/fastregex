@@ -4,6 +4,7 @@
 
 #include "catch.hpp"
 #include <climits>
+#include <iostream>
 #include "../src/include/parser.h"
 
 TEST_CASE("chars() method should build correct AST by given regular expression") {
@@ -255,14 +256,14 @@ TEST_CASE("factor() method should build correct AST by given regular expression"
             }
         }
 
-        WHEN("regex with group") {
-            string = "(a)";
-            auto test_ret = parser.factor();
-            THEN("should return a charset type AST with a") {
-                CHECK(test_ret->type == AST::CHARSET);
-                CHECK(test_ret->charset == std::unordered_set<char>{'a'});
-            }
-        }
+//        WHEN("regex with group") {
+//            string = "(a)";
+//            auto test_ret = parser.factor();
+//            THEN("should return a charset type AST with a") {
+//                CHECK(test_ret->type == AST::CHARSET);
+//                CHECK(test_ret->charset == std::unordered_set<char>{'a'});
+//            }
+//        }
 
 
         WHEN("illegal factor regex") {
@@ -286,6 +287,7 @@ TEST_CASE("repeat() method should build correct AST by given regular expression"
             THEN("should return a star type AST") {
                 CHECK(test_ret->type == AST::STAR);
                 CHECK(test_ret->left->type == AST::CHARSET);
+                CHECK(0 == restring.size());
             }
         }
 
@@ -355,6 +357,31 @@ TEST_CASE("repeat() method should build correct AST by given regular expression"
             THEN("should return a repeat type AST") {
                 CHECK(test_ret->type == AST::CHARSET);
                 CHECK(restring.size() == 5);
+            }
+        }
+    }
+}
+
+TEST_CASE("term() method should build correct AST by given regular expression") {
+    GIVEN("term regex") {
+        std::string string;
+        REstring restring(string);
+        Parser parser(restring);
+
+        WHEN("regex normal") {
+            string = "ab*c";
+            auto test_ret = parser.term();
+            AST *correct_ast = new AST(AST::AND);
+            correct_ast->left = new AST(AST::AND);
+            correct_ast->left->left = new AST(AST::CHARSET);
+            correct_ast->left->left->add_character('a');
+            correct_ast->left->right = new AST(AST::STAR);
+            correct_ast->left->right->left = new AST(AST::CHARSET);
+            correct_ast->left->right->left->add_character('b');
+            correct_ast->right = new AST(AST::CHARSET);
+            correct_ast->right->add_character('c');
+            THEN("should return a AST") {
+                CHECK((*test_ret == *correct_ast));
             }
         }
     }

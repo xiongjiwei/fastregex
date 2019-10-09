@@ -47,10 +47,13 @@ AST *Parser::repeat() {
     if (restring.size() > 0 && root != nullptr && !error_code) {
         if (restring[0] == '*') {
             root = collapse_unary_operator(root, AST::STAR);
+            restring.remove_prefix();
         } else if (restring[0] == '?') {
             root = collapse_unary_operator(root, AST::OPTION);
+            restring.remove_prefix();
         } else if (restring[0] == '+') {
             root = collapse_unary_operator(root, AST::PLUS);
+            restring.remove_prefix();
         } else if (restring[0] == '{') {
             root = maybe_repeat(root);
         }
