@@ -62,7 +62,7 @@ AST *Parser::repeat() {
 AST *Parser::maybe_repeat(AST *root) {
     if (restring.size() > 0 && restring[0] == '{') {
         restring.remove_prefix();
-        int removed_count = 0;
+        int removed_count = 1;
         int low = 0;
 
         int high = INT_MAX;
@@ -73,7 +73,8 @@ AST *Parser::maybe_repeat(AST *root) {
             removed_count++;
         }
 
-        if (removed_count == 0) {
+        if (removed_count == 1) {
+            restring.remove_prefix(-removed_count);
             return root;
         }
 
