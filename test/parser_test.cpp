@@ -214,22 +214,31 @@ TEST_CASE("charset() method should build correct AST by given regular expression
     }
 }
 
-//TEST_CASE("group() method should build correct AST by given regular expression") {
-//    GIVEN("group regex") {
-//        std::string string = "(a)";
-//        REstring restring(string);
-//        Parser parser(restring);
-//        std::unordered_set<char> test_charset = {'a'};
-//
-//        WHEN("building") {
-//            auto test_ret = parser.group();
-//            THEN("should return a charset type AST with a") {
-//                CHECK(test_ret->type == AST::CHARSET);
-//                CHECK(test_ret->charset == test_charset);
-//            }
-//        }
-//    }
-//}
+TEST_CASE("group() method should build correct AST by given regular expression") {
+    GIVEN("group regex") {
+        std::string string;
+        REstring restring(string);
+        Parser parser(restring);
+
+        WHEN("regex with char") {
+            string = "(a)";
+            auto test_ret = parser.group();
+            THEN("should return a charset type AST with a") {
+                CHECK(test_ret->type == AST::CHARSET);
+                CHECK(test_ret->charset == std::unordered_set<char> {'a'});
+            }
+        }
+
+        WHEN("regex with nothing") {
+            string = "()";
+            auto test_ret = parser.group();
+            THEN("should return a empty AST") {
+                CHECK(test_ret->type == AST::CHARSET);
+                CHECK(test_ret->charset.empty());
+            }
+        }
+    }
+}
 
 TEST_CASE("factor() method should build correct AST by given regular expression") {
     GIVEN("factor regex") {
@@ -256,17 +265,18 @@ TEST_CASE("factor() method should build correct AST by given regular expression"
             }
         }
 
-//        WHEN("regex with group") {
-//            string = "(a)";
-//            auto test_ret = parser.factor();
-//            THEN("should return a charset type AST with a") {
-//                CHECK(test_ret->type == AST::CHARSET);
-//                CHECK(test_ret->charset == std::unordered_set<char>{'a'});
-//            }
-//        }
+        WHEN("regex with group") {
+            string = "(a)";
+            auto test_ret = parser.factor();
+            THEN("should return a charset type AST with a") {
+                CHECK(test_ret->type == AST::CHARSET);
+                CHECK(test_ret->charset == std::unordered_set<char>{'a'});
+            }
+        }
 
 
         WHEN("illegal factor regex") {
+            string = "(";
             auto test_ret = parser.factor();
             THEN("should return null") {
                 CHECK(test_ret == nullptr);
@@ -382,6 +392,60 @@ TEST_CASE("term() method should build correct AST by given regular expression") 
             correct_ast->right->add_character('c');
             THEN("should return a AST") {
                 CHECK((*test_ret == *correct_ast));
+                CHECK(restring.size() == 0);
+            }
+        }
+
+        WHEN("regex with '|'") {
+            string = "ab*c|";
+            auto test_ret = parser.term();
+            AST *correct_ast = new AST(AST::AND);
+            correct_ast->left = new AST(AST::AND);
+            correct_ast->left->left = new AST(AST::CHARSET);
+            correct_ast->left->left->add_character('a');
+            correct_ast->left->right = new AST(AST::STAR);
+            correct_ast->left->right->left = new AST(AST::CHARSET);
+            correct_ast->left->right->left->add_character('b');
+            correct_ast->right = new AST(AST::CHARSET);
+            correct_ast->right->add_character('c');
+            THEN("should return a AST") {
+                CHECK((*test_ret == *correct_ast));
+                CHECK(restring.size() == 1);
+            }
+        }
+
+        WHEN("regex with bad quantifier") {
+            string = "*a";
+            auto test_ret = parser.term();
+            THEN("should return a AST") {
+                CHECK(test_ret == nullptr);
+                CHECK(parser.get_error_code(Parser::bad_quantifier));
+            }
+        }
+    }
+}
+
+TEST_CASE("exper() method should build correct AST by given regular expression") {
+    GIVEN("regex") {
+        std::string string;
+        REstring restring(string);
+        Parser parser(restring);
+
+        WHEN("normal") {
+            string = "a|b*|c";
+            auto test_ret = parser.exper();
+            AST *correct_ast = new AST(AST::OR);
+            correct_ast->left = new AST(AST::OR);
+            correct_ast->left->left = new AST(AST::CHARSET);
+            correct_ast->left->left->add_character('a');
+            correct_ast->left->right = new AST(AST::STAR);
+            correct_ast->left->right->left = new AST(AST::CHARSET);
+            correct_ast->left->right->left->add_character('b');
+            correct_ast->right = new AST(AST::CHARSET);
+            correct_ast->right->add_character('c');
+            THEN("should return a AST") {
+                CHECK((*test_ret == *correct_ast));
+                CHECK(restring.size() == 0);
             }
         }
     }
