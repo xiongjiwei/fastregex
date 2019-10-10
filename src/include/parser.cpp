@@ -34,7 +34,7 @@ AST *Parser::term() {
     }
 
     AST *root = repeat();
-    while (restring.size() > 0 && restring[0] != '|' && root != nullptr) {
+    while (restring.size() > 0 && restring[0] != '|' && restring[0] != ')' && root != nullptr) {
         root = collapse_binary_operator(root, repeat(), AST::AND);
     }
 
@@ -143,7 +143,7 @@ AST *Parser::group() {
     if (restring.size() >= 2 && restring[0] == '(') {
         restring.remove_prefix();
         root = exper();
-        if (!(restring.size() >= 1 && restring[0] == ')')) {
+        if (restring.size() == 0 || restring[0] != ')') {
             set_error_code(bad_parenthesis);
             delete root;
             return nullptr;
