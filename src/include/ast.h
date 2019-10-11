@@ -40,7 +40,7 @@ public:
     int high = 0;
 
     bool is_charset_negative = false;
-    const NODETYPE type;
+    NODETYPE type;
     std::unordered_set<char> charset;
 
     bool operator==(AST &other) {
@@ -57,6 +57,7 @@ public:
     AST *optimize();
 
 private:
+    void optimize_OR();
 };
 
 
