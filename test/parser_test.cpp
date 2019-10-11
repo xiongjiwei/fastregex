@@ -444,8 +444,8 @@ TEST_CASE("exper() method should build correct AST by given regular expression")
             repeat12->left->left->left = new AST(AST::CHARSET);
             repeat12->left->left->left->add_character('a');
             repeat12->left->left->right = new AST(AST::STAR);
-            repeat12->left->left->left = new AST(AST::CHARSET);
-            repeat12->left->left->left->add_character('b');
+            repeat12->left->left->right->left = new AST(AST::CHARSET);
+            repeat12->left->left->right->left->add_character('b');
             repeat12->left->right = new AST(AST::AND);
             repeat12->left->right->left = new AST(AST::PLUS);
             repeat12->left->right->left->left = new AST(AST::CHARSET);
@@ -459,10 +459,9 @@ TEST_CASE("exper() method should build correct AST by given regular expression")
             andatoz->left->left = new AST(AST::AND);
             andatoz->left->right = new AST(AST::CHARSET);
             andatoz->left->right->add_character('}');
-            andatoz->left->left->left = new AST(AST::AND);
-            andatoz->left->left->left->left = new AST(AST::CHARSET);
-            andatoz->left->left->left->left->add_character('a');
-            andatoz->left->left->left->right = repeat12;
+            andatoz->left->left->left = new AST(AST::CHARSET);
+            andatoz->left->left->left->add_character('a');
+            andatoz->left->left->right = repeat12;
             andatoz->right = new AST(AST::STAR);
             andatoz->right->left = new AST(AST::CHARSET);
             for (char i = 'a'; i <= 'z'; ++i) {
@@ -483,6 +482,73 @@ TEST_CASE("exper() method should build correct AST by given regular expression")
             THEN("should return a AST") {
                 CHECK((*test_ret == *correct_ast));
                 CHECK(restring.size() == 0);
+            }
+        }
+
+        WHEN("normal") {
+            string = "(a*)*";
+            auto test_ret = parser.exper();
+            AST *correct_ast = new AST(AST::STAR);
+            correct_ast->left = new AST(AST::STAR);
+            correct_ast->left->left = new AST(AST::CHARSET);
+            correct_ast->left->left->add_character('a');
+
+            THEN("should return a AST with double star") {
+                CHECK((*test_ret == *correct_ast));
+                CHECK(restring.size() == 0);
+            }
+        }
+
+        WHEN("nested parenthesis") {
+            string = "((ab)(a|b)*)*";
+            auto test_ret = parser.exper();
+            AST *correct_ast = new AST(AST::STAR);
+            correct_ast->left = new AST(AST::AND);
+            correct_ast->left->left = new AST(AST::AND);
+            correct_ast->left->left->left = new AST(AST::CHARSET);
+            correct_ast->left->left->left->add_character('a');
+            correct_ast->left->left->right = new AST(AST::CHARSET);
+            correct_ast->left->left->right->add_character('b');
+            correct_ast->left->right = new AST(AST::STAR);
+            correct_ast->left->right->left = new AST(AST::OR);
+            correct_ast->left->right->left->left = new AST(AST::CHARSET);
+            correct_ast->left->right->left->left->add_character('a');
+            correct_ast->left->right->left->right = new AST(AST::CHARSET);
+            correct_ast->left->right->left->right->add_character('b');
+
+            THEN("should return a AST with double star") {
+                CHECK((*test_ret == *correct_ast));
+                CHECK(restring.size() == 0);
+            }
+        }
+
+        WHEN("bad parenthesis") {
+            string = "(a*";
+            auto test_ret = parser.exper();
+
+            THEN("should return null with bad_parenthesis error code") {
+                CHECK(test_ret == nullptr);
+                CHECK(parser.get_error_code(Parser::bad_parenthesis));
+            }
+        }
+
+        WHEN("bad charragne") {
+            string = "[z-a]";
+            auto test_ret = parser.exper();
+
+            THEN("should return null with bad_charrange error code") {
+                CHECK(test_ret == nullptr);
+                CHECK(parser.get_error_code(Parser::bad_charrange));
+            }
+        }
+
+        WHEN("bad alternation") {
+            string = "(a|b|c)|c|";
+            auto test_ret = parser.exper();
+
+            THEN("should return null with bad_alternation error code") {
+                CHECK(test_ret == nullptr);
+                CHECK(parser.get_error_code(Parser::bad_alternation));
             }
         }
     }
