@@ -3,3 +3,7 @@
 //
 
 #include "ast.h"
+
+AST *AST::optimize() {
+    return this;
+}
