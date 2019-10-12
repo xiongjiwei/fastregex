@@ -111,8 +111,8 @@ TEST_CASE("charset() method should build correct AST by given regular expression
         WHEN("regex is normal charset") {
             string = "[abc]";
             auto test_ret = parser.charset();
-            std::unordered_set<char> test_charset = {'a', 'b', 'c'};
             THEN("should return a charset type AST with abc") {
+                std::unordered_set<char> test_charset = {'a', 'b', 'c'};
                 CHECK(test_ret->charset == test_charset);
                 CHECK(test_ret->type == AST::CHARSET);
                 CHECK_FALSE(test_ret->is_charset_negative);
@@ -122,14 +122,15 @@ TEST_CASE("charset() method should build correct AST by given regular expression
         WHEN("regex is range") {
             string = "[a-zA-Z]";
             auto test_ret = parser.charset();
-            std::unordered_set<char> test_charset = {};
-            for (char i = 'a'; i <= 'z'; ++i) {
-                test_charset.insert(i);
-            }
-            for (char i = 'A'; i <= 'Z'; ++i) {
-                test_charset.insert(i);
-            }
+
             THEN("should return a charset type AST with a-z and A-Z") {
+                std::unordered_set<char> test_charset = {};
+                for (char i = 'a'; i <= 'z'; ++i) {
+                    test_charset.insert(i);
+                }
+                for (char i = 'A'; i <= 'Z'; ++i) {
+                    test_charset.insert(i);
+                }
                 CHECK(test_ret->charset == test_charset);
                 CHECK(test_ret->type == AST::CHARSET);
                 CHECK_FALSE(test_ret->is_charset_negative);
@@ -148,13 +149,14 @@ TEST_CASE("charset() method should build correct AST by given regular expression
         WHEN("regex with a '-'") {
             string = "[a-zA-]";
             auto test_ret = parser.charset();
-            std::unordered_set<char> test_charset = {};
-            for (char i = 'a'; i <= 'z'; ++i) {
-                test_charset.insert(i);
-            }
-            test_charset.insert('A');
-            test_charset.insert('-');
+
             THEN("should return a charset type AST with a-z and A and -") {
+                std::unordered_set<char> test_charset = {};
+                for (char i = 'a'; i <= 'z'; ++i) {
+                    test_charset.insert(i);
+                }
+                test_charset.insert('A');
+                test_charset.insert('-');
                 CHECK(test_ret->charset == test_charset);
                 CHECK(test_ret->type == AST::CHARSET);
                 CHECK_FALSE(test_ret->is_charset_negative);
@@ -164,14 +166,15 @@ TEST_CASE("charset() method should build correct AST by given regular expression
         WHEN("regex with escape") {
             string = R"([\a\x-\x4)\-])";
             auto test_ret = parser.charset();
-            std::unordered_set<char> test_charset = {};
-            for (char i = 0; i <= 4; ++i) {
-                test_charset.insert(i);
-            }
-            test_charset.insert('a');
-            test_charset.insert('-');
-            test_charset.insert(')');
+
             THEN("should return a charset type AST with abc") {
+                std::unordered_set<char> test_charset = {};
+                for (char i = 0; i <= 4; ++i) {
+                    test_charset.insert(i);
+                }
+                test_charset.insert('a');
+                test_charset.insert('-');
+                test_charset.insert(')');
                 CHECK(test_ret->charset == test_charset);
                 CHECK(test_ret->type == AST::CHARSET);
                 CHECK_FALSE(test_ret->is_charset_negative);
@@ -182,11 +185,12 @@ TEST_CASE("charset() method should build correct AST by given regular expression
         WHEN("regex with negative") {
             string = "[^a-c]";
             auto test_ret = parser.charset();
-            std::unordered_set<char> test_charset = {};
-            for (char i = 'a'; i <= 'c'; ++i) {
-                test_charset.insert(i);
-            }
+
             THEN("should return a charset type AST with abc") {
+                std::unordered_set<char> test_charset = {};
+                for (char i = 'a'; i <= 'c'; ++i) {
+                    test_charset.insert(i);
+                }
                 CHECK(test_ret->charset == test_charset);
                 CHECK(test_ret->type == AST::CHARSET);
                 CHECK(test_ret->is_charset_negative);
@@ -381,16 +385,17 @@ TEST_CASE("term() method should build correct AST by given regular expression") 
         WHEN("regex normal") {
             string = "ab*c";
             auto test_ret = parser.term();
-            AST *correct_ast = new AST(AST::AND);
-            correct_ast->left = new AST(AST::AND);
-            correct_ast->left->left = new AST(AST::CHARSET);
-            correct_ast->left->left->add_character('a');
-            correct_ast->left->right = new AST(AST::STAR);
-            correct_ast->left->right->left = new AST(AST::CHARSET);
-            correct_ast->left->right->left->add_character('b');
-            correct_ast->right = new AST(AST::CHARSET);
-            correct_ast->right->add_character('c');
+
             THEN("should return a AST") {
+                AST *correct_ast = new AST(AST::AND);
+                correct_ast->left = new AST(AST::AND);
+                correct_ast->left->left = new AST(AST::CHARSET);
+                correct_ast->left->left->add_character('a');
+                correct_ast->left->right = new AST(AST::STAR);
+                correct_ast->left->right->left = new AST(AST::CHARSET);
+                correct_ast->left->right->left->add_character('b');
+                correct_ast->right = new AST(AST::CHARSET);
+                correct_ast->right->add_character('c');
                 CHECK((*test_ret == *correct_ast));
                 CHECK(restring.size() == 0);
             }
@@ -399,16 +404,17 @@ TEST_CASE("term() method should build correct AST by given regular expression") 
         WHEN("regex with '|'") {
             string = "ab*c|";
             auto test_ret = parser.term();
-            AST *correct_ast = new AST(AST::AND);
-            correct_ast->left = new AST(AST::AND);
-            correct_ast->left->left = new AST(AST::CHARSET);
-            correct_ast->left->left->add_character('a');
-            correct_ast->left->right = new AST(AST::STAR);
-            correct_ast->left->right->left = new AST(AST::CHARSET);
-            correct_ast->left->right->left->add_character('b');
-            correct_ast->right = new AST(AST::CHARSET);
-            correct_ast->right->add_character('c');
+
             THEN("should return a AST") {
+                AST *correct_ast = new AST(AST::AND);
+                correct_ast->left = new AST(AST::AND);
+                correct_ast->left->left = new AST(AST::CHARSET);
+                correct_ast->left->left->add_character('a');
+                correct_ast->left->right = new AST(AST::STAR);
+                correct_ast->left->right->left = new AST(AST::CHARSET);
+                correct_ast->left->right->left->add_character('b');
+                correct_ast->right = new AST(AST::CHARSET);
+                correct_ast->right->add_character('c');
                 CHECK((*test_ret == *correct_ast));
                 CHECK(restring.size() == 1);
             }
@@ -434,52 +440,52 @@ TEST_CASE("exper() method should build correct AST by given regular expression")
         WHEN("normal") {
             string = "a(a|b*|c+d?){1,2}}[a-z]*\\x}]";
             auto test_ret = parser.exper();
-            AST *correct_ast = new AST(AST::AND);
-            AST *repeat12 = new AST(AST::REPEAT);
 
-            repeat12->low = 1;
-            repeat12->high = 2;
-            repeat12->left = new AST(AST::OR);
-            repeat12->left->left = new AST(AST::OR);
-            repeat12->left->left->left = new AST(AST::CHARSET);
-            repeat12->left->left->left->add_character('a');
-            repeat12->left->left->right = new AST(AST::STAR);
-            repeat12->left->left->right->left = new AST(AST::CHARSET);
-            repeat12->left->left->right->left->add_character('b');
-            repeat12->left->right = new AST(AST::AND);
-            repeat12->left->right->left = new AST(AST::PLUS);
-            repeat12->left->right->left->left = new AST(AST::CHARSET);
-            repeat12->left->right->left->left->add_character('c');
-            repeat12->left->right->right = new AST(AST::OPTION);
-            repeat12->left->right->right->left = new AST(AST::CHARSET);
-            repeat12->left->right->right->left->add_character('d');
-
-            AST *andatoz = new AST(AST::AND);
-            andatoz->left = new AST(AST::AND);
-            andatoz->left->left = new AST(AST::AND);
-            andatoz->left->right = new AST(AST::CHARSET);
-            andatoz->left->right->add_character('}');
-            andatoz->left->left->left = new AST(AST::CHARSET);
-            andatoz->left->left->left->add_character('a');
-            andatoz->left->left->right = repeat12;
-            andatoz->right = new AST(AST::STAR);
-            andatoz->right->left = new AST(AST::CHARSET);
-            for (char i = 'a'; i <= 'z'; ++i) {
-                andatoz->right->left->add_character(i);
-            }
-
-            correct_ast->left = new AST(AST::AND);
-            correct_ast->left->left = new AST(AST::AND);
-            correct_ast->left->left->left = andatoz;
-            correct_ast->left->left->right = new AST(AST::CHARSET);
-            correct_ast->left->left->right->add_character(0);
-            correct_ast->left->right = new AST(AST::CHARSET);
-            correct_ast->left->right->add_character('}');
-            correct_ast->right = new AST(AST::CHARSET);
-            correct_ast->right->add_character(']');
-
-            auto r = (*test_ret == *correct_ast);
             THEN("should return a AST") {
+                AST *correct_ast = new AST(AST::AND);
+                AST *repeat12 = new AST(AST::REPEAT);
+
+                repeat12->low = 1;
+                repeat12->high = 2;
+                repeat12->left = new AST(AST::OR);
+                repeat12->left->left = new AST(AST::OR);
+                repeat12->left->left->left = new AST(AST::CHARSET);
+                repeat12->left->left->left->add_character('a');
+                repeat12->left->left->right = new AST(AST::STAR);
+                repeat12->left->left->right->left = new AST(AST::CHARSET);
+                repeat12->left->left->right->left->add_character('b');
+                repeat12->left->right = new AST(AST::AND);
+                repeat12->left->right->left = new AST(AST::PLUS);
+                repeat12->left->right->left->left = new AST(AST::CHARSET);
+                repeat12->left->right->left->left->add_character('c');
+                repeat12->left->right->right = new AST(AST::OPTION);
+                repeat12->left->right->right->left = new AST(AST::CHARSET);
+                repeat12->left->right->right->left->add_character('d');
+
+                AST *andatoz = new AST(AST::AND);
+                andatoz->left = new AST(AST::AND);
+                andatoz->left->left = new AST(AST::AND);
+                andatoz->left->right = new AST(AST::CHARSET);
+                andatoz->left->right->add_character('}');
+                andatoz->left->left->left = new AST(AST::CHARSET);
+                andatoz->left->left->left->add_character('a');
+                andatoz->left->left->right = repeat12;
+                andatoz->right = new AST(AST::STAR);
+                andatoz->right->left = new AST(AST::CHARSET);
+                for (char i = 'a'; i <= 'z'; ++i) {
+                    andatoz->right->left->add_character(i);
+                }
+
+                correct_ast->left = new AST(AST::AND);
+                correct_ast->left->left = new AST(AST::AND);
+                correct_ast->left->left->left = andatoz;
+                correct_ast->left->left->right = new AST(AST::CHARSET);
+                correct_ast->left->left->right->add_character(0);
+                correct_ast->left->right = new AST(AST::CHARSET);
+                correct_ast->left->right->add_character('}');
+                correct_ast->right = new AST(AST::CHARSET);
+                correct_ast->right->add_character(']');
+
                 CHECK((*test_ret == *correct_ast));
                 CHECK(restring.size() == 0);
             }
@@ -488,12 +494,12 @@ TEST_CASE("exper() method should build correct AST by given regular expression")
         WHEN("normal") {
             string = "(a*)*";
             auto test_ret = parser.exper();
-            AST *correct_ast = new AST(AST::STAR);
-            correct_ast->left = new AST(AST::STAR);
-            correct_ast->left->left = new AST(AST::CHARSET);
-            correct_ast->left->left->add_character('a');
 
             THEN("should return a AST with double star") {
+                AST *correct_ast = new AST(AST::STAR);
+                correct_ast->left = new AST(AST::STAR);
+                correct_ast->left->left = new AST(AST::CHARSET);
+                correct_ast->left->left->add_character('a');
                 CHECK((*test_ret == *correct_ast));
                 CHECK(restring.size() == 0);
             }
@@ -502,21 +508,21 @@ TEST_CASE("exper() method should build correct AST by given regular expression")
         WHEN("nested parenthesis") {
             string = "((ab)(a|b)*)*";
             auto test_ret = parser.exper();
-            AST *correct_ast = new AST(AST::STAR);
-            correct_ast->left = new AST(AST::AND);
-            correct_ast->left->left = new AST(AST::AND);
-            correct_ast->left->left->left = new AST(AST::CHARSET);
-            correct_ast->left->left->left->add_character('a');
-            correct_ast->left->left->right = new AST(AST::CHARSET);
-            correct_ast->left->left->right->add_character('b');
-            correct_ast->left->right = new AST(AST::STAR);
-            correct_ast->left->right->left = new AST(AST::OR);
-            correct_ast->left->right->left->left = new AST(AST::CHARSET);
-            correct_ast->left->right->left->left->add_character('a');
-            correct_ast->left->right->left->right = new AST(AST::CHARSET);
-            correct_ast->left->right->left->right->add_character('b');
 
             THEN("should return a AST with double star") {
+                AST *correct_ast = new AST(AST::STAR);
+                correct_ast->left = new AST(AST::AND);
+                correct_ast->left->left = new AST(AST::AND);
+                correct_ast->left->left->left = new AST(AST::CHARSET);
+                correct_ast->left->left->left->add_character('a');
+                correct_ast->left->left->right = new AST(AST::CHARSET);
+                correct_ast->left->left->right->add_character('b');
+                correct_ast->left->right = new AST(AST::STAR);
+                correct_ast->left->right->left = new AST(AST::OR);
+                correct_ast->left->right->left->left = new AST(AST::CHARSET);
+                correct_ast->left->right->left->left->add_character('a');
+                correct_ast->left->right->left->right = new AST(AST::CHARSET);
+                correct_ast->left->right->left->right->add_character('b');
                 CHECK((*test_ret == *correct_ast));
                 CHECK(restring.size() == 0);
             }

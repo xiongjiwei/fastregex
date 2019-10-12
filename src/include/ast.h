@@ -58,6 +58,13 @@ public:
 
 private:
     void optimize_OR();
+    void optimize_STAR();
+    void optimize_PLUS();
+    void optimize_OPTION();
+    void optimize_AND();
+    void optimize_REPEAT();
+
+    void delete_child();
 };
 
 
