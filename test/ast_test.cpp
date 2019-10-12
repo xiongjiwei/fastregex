@@ -253,5 +253,31 @@ TEST_CASE("optimize") {
             auto test_ret = parser.exper()->optimize();
         }
     }
+
+    SECTION("nested") {
+        WHEN("star") {
+            string = "(((a)*)*)*";
+            auto test_ret = parser.exper()->optimize();
+            THEN("optimise to star") {
+                auto correct_ast = new AST(AST::STAR);
+                correct_ast->left = new AST(AST::CHARSET);
+                correct_ast->left->add_character('a');
+
+                CHECK((*test_ret == *correct_ast));
+            }
+        }
+
+        WHEN("star and repeat") {
+            string = "(((a)*){1,10})*";
+            auto test_ret = parser.exper()->optimize();
+            THEN("optimise to star") {
+                auto correct_ast = new AST(AST::STAR);
+                correct_ast->left = new AST(AST::CHARSET);
+                correct_ast->left->add_character('a');
+
+                CHECK((*test_ret == *correct_ast));
+            }
+        }
+    }
 }
 
