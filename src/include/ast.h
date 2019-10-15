@@ -56,13 +56,13 @@ public:
     void set_charset_negative() {
         this->charset.flip();
     }
-
     std::bitset<256> get_charset() {
         return charset;
     }
 
 private:
     std::bitset<256> charset;
+    bool is_valid();
 
     void optimize_OR();
     void optimize_STAR();

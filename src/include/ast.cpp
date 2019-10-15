@@ -110,3 +110,12 @@ void AST::delete_child() {
     t->left = nullptr;
     delete t;
 }
+
+bool AST::is_valid() {
+    //not support expressions like ((((a{1,100})){1,100}){1,100}){1,100}
+    if (this->type == REPEAT && this->left->type == REPEAT) {
+        return false;
+    }
+
+    return (this->left == nullptr || this->left->is_valid()) && (this->right == nullptr || this->right->is_valid());
+}
