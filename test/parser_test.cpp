@@ -16,66 +16,66 @@ TEST_CASE("chars() method should build correct AST by given regular expression")
         WHEN("restring moved forward") {
             auto test_ast = parser.chars();
             AND_WHEN("chars() method meet a normal char") {
-                std::unordered_set<char> test_charset = {'f'};
+                std::bitset<256> test_charset;
+                test_charset['f'] = true;
 
                 THEN("build a normal char AST") {
-                    CHECK(test_ast->charset == test_charset);
-                    CHECK_FALSE(test_ast->is_charset_negative);
+                    CHECK(test_ast->get_charset() == test_charset);
                     results.push_back(test_ast);
                 }
             }
 
             test_ast = parser.chars();
             AND_WHEN("chars() method meet a escape character") {
-                std::unordered_set<char> test_charset = {')'};
+                std::bitset<256> test_charset;
+                test_charset[')'] = true;
 
                 THEN("build a normal char AST") {
-                    CHECK(test_ast->charset == test_charset);
-                    CHECK_FALSE(test_ast->is_charset_negative);
+                    CHECK(test_ast->get_charset() == test_charset);
                     results.push_back(test_ast);
                 }
             }
 
             test_ast = parser.chars();
             AND_WHEN("chars() method meet a escape otc character") {
-                std::unordered_set<char> test_charset = {04};
+                std::bitset<256> test_charset;
+                test_charset[04] = true;
 
                 THEN("build an otc code point AST") {
-                    CHECK(test_ast->charset == test_charset);
-                    CHECK_FALSE(test_ast->is_charset_negative);
+                    CHECK(test_ast->get_charset() == test_charset);
                     results.push_back(test_ast);
                 }
             }
 
             test_ast = parser.chars();
             AND_WHEN("chars() method meet a escape hex character without code point") {
-                std::unordered_set<char> test_charset = {0x0};
+                std::bitset<256> test_charset;
+                test_charset[0x0] = true;
 
                 THEN("build a 0 hex code point AST") {
-                    CHECK(test_ast->charset == test_charset);
-                    CHECK_FALSE(test_ast->is_charset_negative);
+                    CHECK(test_ast->get_charset() == test_charset);
                     results.push_back(test_ast);
                 }
             }
 
             test_ast = parser.chars();
             AND_WHEN("chars() method meet a escape hex character with code point") {
-                std::unordered_set<char> test_charset = {0x10};
+                std::bitset<256> test_charset;
+                test_charset[0x10] = true;
 
                 THEN("build a hex code point AST") {
-                    CHECK(test_ast->charset == test_charset);
-                    CHECK_FALSE(test_ast->is_charset_negative);
+                    CHECK(test_ast->get_charset() == test_charset);
                     results.push_back(test_ast);
                 }
             }
 
             test_ast = parser.chars();
             AND_WHEN("chars() method meet a dot") {
-                std::unordered_set<char> test_charset = {};
+                std::bitset<256> test_charset;
+                test_charset.flip();
 
                 THEN("build an any char AST") {
-                    CHECK(test_ast->charset == test_charset);
-                    CHECK(test_ast->is_charset_negative);
+                    CHECK(test_ast->get_charset() == test_charset);
                     results.push_back(test_ast);
                 }
             }
@@ -112,10 +112,12 @@ TEST_CASE("charset() method should build correct AST by given regular expression
             string = "[abc]";
             auto test_ret = parser.charset();
             THEN("should return a charset type AST with abc") {
-                std::unordered_set<char> test_charset = {'a', 'b', 'c'};
-                CHECK(test_ret->charset == test_charset);
+                std::bitset<256> test_charset;
+                test_charset['a'] = true;
+                test_charset['b'] = true;
+                test_charset['c'] = true;
+                CHECK(test_ret->get_charset() == test_charset);
                 CHECK(test_ret->type == AST::CHARSET);
-                CHECK_FALSE(test_ret->is_charset_negative);
             }
         }
 
@@ -124,16 +126,15 @@ TEST_CASE("charset() method should build correct AST by given regular expression
             auto test_ret = parser.charset();
 
             THEN("should return a charset type AST with a-z and A-Z") {
-                std::unordered_set<char> test_charset = {};
+                std::bitset<256> test_charset;
                 for (char i = 'a'; i <= 'z'; ++i) {
-                    test_charset.insert(i);
+                    test_charset[i] = true;
                 }
                 for (char i = 'A'; i <= 'Z'; ++i) {
-                    test_charset.insert(i);
+                    test_charset[i] = true;
                 }
-                CHECK(test_ret->charset == test_charset);
+                CHECK(test_ret->get_charset() == test_charset);
                 CHECK(test_ret->type == AST::CHARSET);
-                CHECK_FALSE(test_ret->is_charset_negative);
             }
         }
 
@@ -151,15 +152,16 @@ TEST_CASE("charset() method should build correct AST by given regular expression
             auto test_ret = parser.charset();
 
             THEN("should return a charset type AST with a-z and A and -") {
-                std::unordered_set<char> test_charset = {};
+                std::bitset<256> test_charset;
+
                 for (char i = 'a'; i <= 'z'; ++i) {
-                    test_charset.insert(i);
+                    test_charset[i] = true;
                 }
-                test_charset.insert('A');
-                test_charset.insert('-');
-                CHECK(test_ret->charset == test_charset);
+                test_charset['A'] = true;
+                test_charset['-'] = true;
+
+                CHECK(test_ret->get_charset() == test_charset);
                 CHECK(test_ret->type == AST::CHARSET);
-                CHECK_FALSE(test_ret->is_charset_negative);
             }
         }
 
@@ -168,16 +170,17 @@ TEST_CASE("charset() method should build correct AST by given regular expression
             auto test_ret = parser.charset();
 
             THEN("should return a charset type AST with abc") {
-                std::unordered_set<char> test_charset = {};
+                std::bitset<256> test_charset;
+
                 for (char i = 0; i <= 4; ++i) {
-                    test_charset.insert(i);
+                    test_charset[i] = true;
                 }
-                test_charset.insert('a');
-                test_charset.insert('-');
-                test_charset.insert(')');
-                CHECK(test_ret->charset == test_charset);
+                test_charset['a'] = true;
+                test_charset['-'] = true;
+                test_charset[')'] = true;
+
+                CHECK(test_ret->get_charset() == test_charset);
                 CHECK(test_ret->type == AST::CHARSET);
-                CHECK_FALSE(test_ret->is_charset_negative);
             }
         }
 
@@ -187,13 +190,13 @@ TEST_CASE("charset() method should build correct AST by given regular expression
             auto test_ret = parser.charset();
 
             THEN("should return a charset type AST with abc") {
-                std::unordered_set<char> test_charset = {};
+                std::bitset<256> test_charset;
                 for (char i = 'a'; i <= 'c'; ++i) {
-                    test_charset.insert(i);
+                    test_charset[i] = true;
                 }
-                CHECK(test_ret->charset == test_charset);
+                test_charset.flip();
+                CHECK(test_ret->get_charset() == test_charset);
                 CHECK(test_ret->type == AST::CHARSET);
-                CHECK(test_ret->is_charset_negative);
             }
         }
 
@@ -228,8 +231,10 @@ TEST_CASE("group() method should build correct AST by given regular expression")
             string = "(a)";
             auto test_ret = parser.group();
             THEN("should return a charset type AST with a") {
+                std::bitset<256> test_charset;
+                test_charset['a'] = true;
                 CHECK(test_ret->type == AST::CHARSET);
-                CHECK(test_ret->charset == std::unordered_set<char> {'a'});
+                CHECK(test_ret->get_charset() == test_charset);
             }
         }
 
@@ -238,7 +243,7 @@ TEST_CASE("group() method should build correct AST by given regular expression")
             auto test_ret = parser.group();
             THEN("should return a empty AST") {
                 CHECK(test_ret->type == AST::CHARSET);
-                CHECK(test_ret->charset.empty());
+                CHECK(test_ret->get_charset().none());
             }
         }
     }
@@ -254,8 +259,10 @@ TEST_CASE("factor() method should build correct AST by given regular expression"
             string = "a";
             auto test_ret = parser.factor();
             THEN("should return a charset type AST with a") {
+                std::bitset<256> test_charset;
+                test_charset['a'] = true;
                 CHECK(test_ret->type == AST::CHARSET);
-                CHECK(test_ret->charset == std::unordered_set<char>{'a'});
+                CHECK(test_ret->get_charset() == test_charset);
             }
         }
 
@@ -264,8 +271,12 @@ TEST_CASE("factor() method should build correct AST by given regular expression"
             string = "[abc]";
             auto test_ret = parser.factor();
             THEN("should return a charset type AST with abc") {
+                std::bitset<256> test_charset;
+                test_charset['a'] = true;
+                test_charset['b'] = true;
+                test_charset['c'] = true;
                 CHECK(test_ret->type == AST::CHARSET);
-                CHECK(test_ret->charset == std::unordered_set<char>{'a', 'b', 'c'});
+                CHECK(test_ret->get_charset() == test_charset);
             }
         }
 
@@ -273,8 +284,10 @@ TEST_CASE("factor() method should build correct AST by given regular expression"
             string = "(a)";
             auto test_ret = parser.factor();
             THEN("should return a charset type AST with a") {
+                std::bitset<256> test_charset;
+                test_charset['a'] = true;
                 CHECK(test_ret->type == AST::CHARSET);
-                CHECK(test_ret->charset == std::unordered_set<char>{'a'});
+                CHECK(test_ret->get_charset() == test_charset);
             }
         }
 

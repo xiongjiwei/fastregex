@@ -7,6 +7,7 @@
 
 
 #include <unordered_set>
+#include <bitset>
 
 class AST {
 public:
@@ -30,7 +31,7 @@ public:
     }
 
     void add_character(char ch) {
-        this->charset.insert(ch);
+        this->charset[ch] = 1;
     }
 
     AST *left = nullptr;
@@ -39,15 +40,12 @@ public:
     int low = 0;
     int high = 0;
 
-    bool is_charset_negative = false;
     NODETYPE type;
-    std::unordered_set<char> charset;
 
     bool operator==(AST &other) {
         return this->charset == other.charset &&
                 this->low == other.low && this->high == other.high &&
                 this->type == other.type &&
-                this->is_charset_negative == other.is_charset_negative &&
                (this->left == other.left ||
                 (this->left != nullptr && other.left != nullptr && *(left) == *(other.left))) &&
                (this->right == other.right ||
@@ -55,8 +53,17 @@ public:
     }
 
     AST *optimize();
+    void set_charset_negative() {
+        this->charset.flip();
+    }
+
+    std::bitset<256> get_charset() {
+        return charset;
+    }
 
 private:
+    std::bitset<256> charset;
+
     void optimize_OR();
     void optimize_STAR();
     void optimize_PLUS();

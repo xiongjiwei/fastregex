@@ -36,8 +36,7 @@ AST *AST::optimize() {
 
 void AST::optimize_OR() {
     if (this->left->type == AST::CHARSET && this->right->type == CHARSET) {
-        this->charset.insert(this->left->charset.begin(), this->left->charset.end());
-        this->charset.insert(this->right->charset.begin(), this->right->charset.end());
+        this->charset = this->left->charset | this->right->charset;
         this->type = AST::CHARSET;
 
         delete this->left;

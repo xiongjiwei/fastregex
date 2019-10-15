@@ -167,7 +167,6 @@ AST *Parser::charset() {
             is_negative = true;
             restring.remove_prefix();
         }
-        root->is_charset_negative = is_negative;
         std::vector<char> stake; // use -2 instead operator '-'
 
         while (restring.size() >= 1) {
@@ -189,6 +188,10 @@ AST *Parser::charset() {
                         root->add_character(
                                 stake[i] == -2 ? '-' : stake[i]); //if stake[i] == -2, it means this is a '-' character
                     }
+                }
+
+                if (is_negative) {
+                    root->set_charset_negative();
                 }
                 return root;
             }
@@ -229,7 +232,7 @@ AST *Parser::chars() {
                 return nullptr;
             }
         } else if (restring[0] == '.') {
-            root->is_charset_negative = true;
+            root->set_charset_negative();
             restring.remove_prefix();
         } else {
             root->add_character(restring[0]);
