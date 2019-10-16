@@ -246,6 +246,15 @@ TEST_CASE("group() method should build correct AST by given regular expression")
                 CHECK(test_ret->get_charset().none());
             }
         }
+
+        WHEN("regex with wrong expression in group") {
+            string = "(a**)";
+            auto test_ret = parser.group();
+            THEN("should return null") {
+                CHECK(test_ret == nullptr);
+                CHECK(parser.get_error_code(Parser::bad_quantifier));
+            }
+        }
     }
 }
 
@@ -297,6 +306,7 @@ TEST_CASE("factor() method should build correct AST by given regular expression"
             auto test_ret = parser.factor();
             THEN("should return null") {
                 CHECK(test_ret == nullptr);
+                CHECK(parser.get_error_code(Parser::bad_parenthesis));
             }
         }
     }
@@ -360,7 +370,7 @@ TEST_CASE("repeat() method should build correct AST by given regular expression"
             }
         }
 
-        WHEN("no left") {
+        WHEN("no repeat") {
             string = "b{,5}";
             auto test_ret = parser.repeat();
             THEN("should return a repeat type AST") {

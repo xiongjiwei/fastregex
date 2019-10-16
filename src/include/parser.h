@@ -27,15 +27,15 @@ public:
 
     AST *maybe_repeat(AST *root);
 
-    static const unsigned char bad_escape = 1 << 1;
-    static const unsigned char bad_parenthesis = 1 << 2;
-    static const unsigned char bad_quantifier = 1 << 3;
-    static const unsigned char bad_charrange = 1 << 4;
-    static const unsigned char bad_square_bracket = 1 << 5;
-    static const unsigned char bad_alternation = 1 << 6;
+    static const unsigned char bad_escape =         1;
+    static const unsigned char bad_parenthesis =    2;
+    static const unsigned char bad_quantifier =     3;
+    static const unsigned char bad_charrange =      4;
+    static const unsigned char bad_square_bracket = 5;
+    static const unsigned char bad_alternation =    6;
 
     bool get_error_code(unsigned char code) const {
-        return (error_code & code) != 0;
+        return error_code[code];
     }
 
 private:
@@ -65,10 +65,10 @@ private:
     }
 
     void set_error_code(unsigned char code) {
-        error_code |= code;
+        error_code[code] = true;
     }
 
-    unsigned char error_code = 0;
+    std::bitset<8> error_code;
 };
 
 

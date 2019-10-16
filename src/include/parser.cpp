@@ -27,12 +27,6 @@ AST *Parser::exper() {
 
 //e1*e2+e3?...
 AST *Parser::term() {
-
-    if (restring.size() > 0 && (restring[0] == '*' || restring[0] == '+' || restring[0] == '?')) {
-        set_error_code(bad_quantifier);
-        return nullptr;
-    }
-
     AST *root = repeat();
     while (restring.size() > 0 && restring[0] != '|' && restring[0] != ')' && root != nullptr) {
         root = collapse_binary_operator(root, repeat(), AST::AND);
@@ -43,8 +37,15 @@ AST *Parser::term() {
 
 //e1*, e2+, e3?, e4{m,n}
 AST *Parser::repeat() {
+
+    if (restring.size() > 0 && (restring[0] == '*' || restring[0] == '+' || restring[0] == '?')) {
+        restring.remove_prefix();
+        set_error_code(bad_quantifier);
+        return nullptr;
+    }
+
     AST *root = factor();
-    if (restring.size() > 0 && root != nullptr && !error_code) {
+    if (restring.size() > 0 && root != nullptr && error_code.none()) {
         if (restring[0] == '*') {
             root = collapse_unary_operator(root, AST::STAR);
             restring.remove_prefix();
@@ -126,7 +127,7 @@ AST *Parser::maybe_repeat(AST *root) {
 
 //(e1e2e3)
 AST *Parser::factor() {
-    if (restring.size() > 0 && !error_code) {
+    if (restring.size() > 0 && error_code.none()) {
         if (restring[0] == '(') {
             return group();
         } else if (restring[0] == '[') {
@@ -149,10 +150,12 @@ AST *Parser::group() {
             return nullptr;
         }
 
-        if (root == nullptr && !error_code) {
+        if (root == nullptr && error_code.none()) {
             root = new AST(AST::CHARSET);
         }
         restring.remove_prefix();
+    } else {
+        this->set_error_code(bad_parenthesis);
     }
     return root;
 }
