@@ -91,7 +91,7 @@ AST *Parser::maybe_repeat(AST *root) {
                 auto father = new AST(AST::REPEAT);
                 father->low = low;
                 father->high = high;
-                father->left = root;
+                father->child = root;
                 return father;
             }
         } else {
@@ -116,7 +116,7 @@ AST *Parser::maybe_repeat(AST *root) {
             auto father = new AST(AST::REPEAT);
             father->low = low;
             father->high = high;
-            father->left = root;
+            father->child = root;
             return father;
         }
         restring.remove_prefix(-removed_count);
@@ -249,7 +249,7 @@ AST *Parser::collapse_unary_operator(AST *child, AST::NODETYPE type) {
     }
 
     auto root = new AST(type);
-    root->left = child;
+    root->child = child;
     return root;
 }
 

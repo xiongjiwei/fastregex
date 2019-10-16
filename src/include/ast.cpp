@@ -48,7 +48,7 @@ void AST::optimize_OR() {
 }
 
 void AST::optimize_STAR() {
-    if (this->left->type == AST::STAR || this->left->type == AST::PLUS || this->left->type == AST::OPTION) {
+    if (this->child->type == AST::STAR || this->child->type == AST::PLUS || this->child->type == AST::OPTION) {
         delete_child();
 
         this->type = AST::STAR;
@@ -56,11 +56,11 @@ void AST::optimize_STAR() {
 }
 
 void AST::optimize_PLUS() {
-    if (this->left->type == AST::STAR || this->left->type == AST::OPTION) {
+    if (this->child->type == AST::STAR || this->child->type == AST::OPTION) {
         delete_child();
 
         this->type = AST::STAR;
-    } else if (this->left->type == AST::PLUS) {
+    } else if (this->child->type == AST::PLUS) {
         delete_child();
 
         this->type = AST::PLUS;
@@ -68,11 +68,11 @@ void AST::optimize_PLUS() {
 }
 
 void AST::optimize_OPTION() {
-    if (this->left->type == AST::STAR || this->left->type == AST::PLUS) {
+    if (this->child->type == AST::STAR || this->child->type == AST::PLUS) {
         delete_child();
 
         this->type = AST::STAR;
-    } else if (this->left->type == AST::OPTION) {
+    } else if (this->child->type == AST::OPTION) {
         delete_child();
 
         this->type = AST::OPTION;
@@ -84,19 +84,19 @@ void AST::optimize_AND() {
 }
 
 void AST::optimize_REPEAT() {
-    if (this->left->type == AST::STAR) {
+    if (this->child->type == AST::STAR) {
         delete_child();
 
         this->type = AST::STAR;
         this->low = 0;
         this->high = 0;
-    } else if (this->left->type == AST::PLUS) {
+    } else if (this->child->type == AST::PLUS) {
         delete_child();
 
         this->type = AST::PLUS;
         this->low = 0;
         this->high = 0;
-    } else if (this->left->type == AST::OPTION) {
+    } else if (this->child->type == AST::OPTION) {
         delete_child();
 
         this->type = AST::REPEAT;
@@ -105,9 +105,9 @@ void AST::optimize_REPEAT() {
 }
 
 void AST::delete_child() {
-    auto t = this->left;
-    this->left = this->left->left;
-    t->left = nullptr;
+    auto t = this->child;
+    this->child = this->child->child;
+    t->child = nullptr;
     delete t;
 }
 

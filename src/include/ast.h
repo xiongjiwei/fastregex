@@ -36,6 +36,7 @@ public:
 
     AST *left = nullptr;
     AST *right = nullptr;
+    AST*& child = left;
 
     int low = 0;
     int high = 0;

@@ -313,7 +313,7 @@ TEST_CASE("repeat() method should build correct AST by given regular expression"
             auto test_ret = parser.repeat();
             THEN("should return a star type AST") {
                 CHECK(test_ret->type == AST::STAR);
-                CHECK(test_ret->left->type == AST::CHARSET);
+                CHECK(test_ret->child->type == AST::CHARSET);
                 CHECK(0 == restring.size());
             }
         }
@@ -325,7 +325,7 @@ TEST_CASE("repeat() method should build correct AST by given regular expression"
                 CHECK(test_ret->type == AST::REPEAT);
                 CHECK(test_ret->low == 2);
                 CHECK(test_ret->high == 2);
-                CHECK(test_ret->left->type == AST::CHARSET);
+                CHECK(test_ret->child->type == AST::CHARSET);
             }
         }
 
@@ -336,7 +336,7 @@ TEST_CASE("repeat() method should build correct AST by given regular expression"
                 CHECK(test_ret->type == AST::REPEAT);
                 CHECK(test_ret->low == 2);
                 CHECK(test_ret->high == INT_MAX);
-                CHECK(test_ret->left->type == AST::CHARSET);
+                CHECK(test_ret->child->type == AST::CHARSET);
             }
         }
 
@@ -347,7 +347,7 @@ TEST_CASE("repeat() method should build correct AST by given regular expression"
                 CHECK(test_ret->type == AST::REPEAT);
                 CHECK(test_ret->low == 2);
                 CHECK(test_ret->high == 5);
-                CHECK(test_ret->left->type == AST::CHARSET);
+                CHECK(test_ret->child->type == AST::CHARSET);
             }
         }
 
@@ -405,8 +405,8 @@ TEST_CASE("term() method should build correct AST by given regular expression") 
                 correct_ast->left->left = new AST(AST::CHARSET);
                 correct_ast->left->left->add_character('a');
                 correct_ast->left->right = new AST(AST::STAR);
-                correct_ast->left->right->left = new AST(AST::CHARSET);
-                correct_ast->left->right->left->add_character('b');
+                correct_ast->left->right->child = new AST(AST::CHARSET);
+                correct_ast->left->right->child->add_character('b');
                 correct_ast->right = new AST(AST::CHARSET);
                 correct_ast->right->add_character('c');
                 CHECK((*test_ret == *correct_ast));
@@ -424,8 +424,8 @@ TEST_CASE("term() method should build correct AST by given regular expression") 
                 correct_ast->left->left = new AST(AST::CHARSET);
                 correct_ast->left->left->add_character('a');
                 correct_ast->left->right = new AST(AST::STAR);
-                correct_ast->left->right->left = new AST(AST::CHARSET);
-                correct_ast->left->right->left->add_character('b');
+                correct_ast->left->right->child = new AST(AST::CHARSET);
+                correct_ast->left->right->child->add_character('b');
                 correct_ast->right = new AST(AST::CHARSET);
                 correct_ast->right->add_character('c');
                 CHECK((*test_ret == *correct_ast));
@@ -465,15 +465,15 @@ TEST_CASE("exper() method should build correct AST by given regular expression")
                 repeat12->left->left->left = new AST(AST::CHARSET);
                 repeat12->left->left->left->add_character('a');
                 repeat12->left->left->right = new AST(AST::STAR);
-                repeat12->left->left->right->left = new AST(AST::CHARSET);
-                repeat12->left->left->right->left->add_character('b');
+                repeat12->left->left->right->child = new AST(AST::CHARSET);
+                repeat12->left->left->right->child->add_character('b');
                 repeat12->left->right = new AST(AST::AND);
                 repeat12->left->right->left = new AST(AST::PLUS);
-                repeat12->left->right->left->left = new AST(AST::CHARSET);
-                repeat12->left->right->left->left->add_character('c');
+                repeat12->left->right->left->child = new AST(AST::CHARSET);
+                repeat12->left->right->left->child->add_character('c');
                 repeat12->left->right->right = new AST(AST::OPTION);
-                repeat12->left->right->right->left = new AST(AST::CHARSET);
-                repeat12->left->right->right->left->add_character('d');
+                repeat12->left->right->right->child = new AST(AST::CHARSET);
+                repeat12->left->right->right->child->add_character('d');
 
                 AST *andatoz = new AST(AST::AND);
                 andatoz->left = new AST(AST::AND);
@@ -484,9 +484,9 @@ TEST_CASE("exper() method should build correct AST by given regular expression")
                 andatoz->left->left->left->add_character('a');
                 andatoz->left->left->right = repeat12;
                 andatoz->right = new AST(AST::STAR);
-                andatoz->right->left = new AST(AST::CHARSET);
+                andatoz->right->child = new AST(AST::CHARSET);
                 for (char i = 'a'; i <= 'z'; ++i) {
-                    andatoz->right->left->add_character(i);
+                    andatoz->right->child->add_character(i);
                 }
 
                 correct_ast->left = new AST(AST::AND);
@@ -510,9 +510,9 @@ TEST_CASE("exper() method should build correct AST by given regular expression")
 
             THEN("should return a AST with double star") {
                 AST *correct_ast = new AST(AST::STAR);
-                correct_ast->left = new AST(AST::STAR);
-                correct_ast->left->left = new AST(AST::CHARSET);
-                correct_ast->left->left->add_character('a');
+                correct_ast->child = new AST(AST::STAR);
+                correct_ast->child->child = new AST(AST::CHARSET);
+                correct_ast->child->child->add_character('a');
                 CHECK((*test_ret == *correct_ast));
                 CHECK(restring.size() == 0);
             }
@@ -524,18 +524,18 @@ TEST_CASE("exper() method should build correct AST by given regular expression")
 
             THEN("should return a AST with double star") {
                 AST *correct_ast = new AST(AST::STAR);
-                correct_ast->left = new AST(AST::AND);
-                correct_ast->left->left = new AST(AST::AND);
-                correct_ast->left->left->left = new AST(AST::CHARSET);
-                correct_ast->left->left->left->add_character('a');
-                correct_ast->left->left->right = new AST(AST::CHARSET);
-                correct_ast->left->left->right->add_character('b');
-                correct_ast->left->right = new AST(AST::STAR);
-                correct_ast->left->right->left = new AST(AST::OR);
-                correct_ast->left->right->left->left = new AST(AST::CHARSET);
-                correct_ast->left->right->left->left->add_character('a');
-                correct_ast->left->right->left->right = new AST(AST::CHARSET);
-                correct_ast->left->right->left->right->add_character('b');
+                correct_ast->child = new AST(AST::AND);
+                correct_ast->child->left = new AST(AST::AND);
+                correct_ast->child->left->left = new AST(AST::CHARSET);
+                correct_ast->child->left->left->add_character('a');
+                correct_ast->child->left->right = new AST(AST::CHARSET);
+                correct_ast->child->left->right->add_character('b');
+                correct_ast->child->right = new AST(AST::STAR);
+                correct_ast->child->right->child = new AST(AST::OR);
+                correct_ast->child->right->child->left = new AST(AST::CHARSET);
+                correct_ast->child->right->child->left->add_character('a');
+                correct_ast->child->right->child->right = new AST(AST::CHARSET);
+                correct_ast->child->right->child->right->add_character('b');
                 CHECK((*test_ret == *correct_ast));
                 CHECK(restring.size() == 0);
             }
