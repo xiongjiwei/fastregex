@@ -4,13 +4,14 @@
 
 #include <climits>
 #include "parser.h"
+#include "ast.h"
 
-AST *Parser::regex() {
+REx::AST *REx::Parser::regex() {
     return nullptr;
 }
 
 //e1 | e2 | e3 | ...
-AST *Parser::exper() {
+REx::AST *REx::Parser::exper() {
     auto root = term();
 
     while (restring.size() > 0 && restring[0] == '|' && root != nullptr) {
@@ -26,7 +27,7 @@ AST *Parser::exper() {
 }
 
 //e1*e2+e3?...
-AST *Parser::term() {
+REx::AST *REx::Parser::term() {
     AST *root = repeat();
     while (restring.size() > 0 && restring[0] != '|' && restring[0] != ')' && root != nullptr) {
         root = collapse_binary_operator(root, repeat(), AST::AND);
@@ -36,7 +37,7 @@ AST *Parser::term() {
 }
 
 //e1*, e2+, e3?, e4{m,n}
-AST *Parser::repeat() {
+REx::AST *REx::Parser::repeat() {
 
     if (restring.size() > 0 && (restring[0] == '*' || restring[0] == '+' || restring[0] == '?')) {
         restring.remove_prefix();
@@ -63,7 +64,7 @@ AST *Parser::repeat() {
 }
 
 //e1{m,n}
-AST *Parser::maybe_repeat(AST *root) {
+REx::AST *REx::Parser::maybe_repeat(AST *root) {
     if (restring.size() > 0 && restring[0] == '{') {
         restring.remove_prefix();
         int removed_count = 1;
@@ -126,7 +127,7 @@ AST *Parser::maybe_repeat(AST *root) {
 }
 
 //(e1e2e3)
-AST *Parser::factor() {
+REx::AST *REx::Parser::factor() {
     if (restring.size() > 0 && error_code.none()) {
         if (restring[0] == '(') {
             return group();
@@ -139,7 +140,7 @@ AST *Parser::factor() {
     return nullptr;
 }
 
-AST *Parser::group() {
+REx::AST *REx::Parser::group() {
     AST *root = nullptr;
     if (restring.size() >= 2 && restring[0] == '(') {
         restring.remove_prefix();
@@ -160,7 +161,7 @@ AST *Parser::group() {
     return root;
 }
 
-AST *Parser::charset() {
+REx::AST *REx::Parser::charset() {
     AST *root = nullptr;
     if (restring.size() >= 2) {
         root = new AST(AST::CHARSET);
@@ -221,7 +222,7 @@ AST *Parser::charset() {
     return nullptr;
 }
 
-AST *Parser::chars() {
+REx::AST *REx::Parser::chars() {
     AST *root = nullptr;
     if (restring.size() > 0 && UNHANDLED_CHAR.find(restring[0]) == UNHANDLED_CHAR.end()) {
         root = new AST(AST::NODETYPE::CHARSET);
@@ -246,7 +247,7 @@ AST *Parser::chars() {
     return root;
 }
 
-AST *Parser::collapse_unary_operator(AST *child, AST::NODETYPE type) {
+REx::AST *REx::Parser::collapse_unary_operator(AST *child, AST::NODETYPE type) {
     if (child == nullptr) {
         return nullptr;
     }
@@ -256,7 +257,7 @@ AST *Parser::collapse_unary_operator(AST *child, AST::NODETYPE type) {
     return root;
 }
 
-AST *Parser::collapse_binary_operator(AST *left, AST *right, AST::NODETYPE type) {
+REx::AST *REx::Parser::collapse_binary_operator(AST *left, AST *right, AST::NODETYPE type) {
     if (left == nullptr || right == nullptr) {
         delete left;
         delete right;
@@ -270,7 +271,7 @@ AST *Parser::collapse_binary_operator(AST *left, AST *right, AST::NODETYPE type)
 }
 
 /// \return the escape character code point, -1 means wrong
-int Parser::process_escape() {
+int REx::Parser::process_escape() {
     restring.remove_prefix(); // remove \
 
     if (restring.size() > 0) {

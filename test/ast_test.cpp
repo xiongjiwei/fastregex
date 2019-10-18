@@ -8,7 +8,7 @@
 
 TEST_CASE("operator ==") {
     SECTION("should return true when pointer is same") {
-        auto left = new AST(AST::STAR);
+        auto left = new REx::AST(REx::AST::STAR);
         left->add_character('a');
         left->low = 1;
         left->high = 2;
@@ -19,29 +19,29 @@ TEST_CASE("operator ==") {
     }
 
     SECTION("should return true when content is same") {
-        auto left = new AST(AST::STAR);
+        auto left = new REx::AST(REx::AST::STAR);
         left->add_character('a');
         left->low = 1;
         left->high = 2;
-        left->left = new AST(AST::CHARSET);
+        left->left = new REx::AST(REx::AST::CHARSET);
 
-        auto right = new AST(AST::STAR);
+        auto right = new REx::AST(REx::AST::STAR);
         right->add_character('a');
         right->low = 1;
         right->high = 2;
-        right->left = new AST(AST::CHARSET);
+        right->left = new REx::AST(REx::AST::CHARSET);
 
         CHECK((*left == *right));
     }
 
     SECTION("should return false when anyone is not same") {
-        auto left = new AST(AST::STAR);
+        auto left = new REx::AST(REx::AST::STAR);
         left->add_character('a');
         left->low = 1;
         left->high = 2;
-        left->left = new AST(AST::CHARSET);
+        left->left = new REx::AST(REx::AST::CHARSET);
 
-        auto right = new AST(AST::STAR);
+        auto right = new REx::AST(REx::AST::STAR);
         right->add_character('a');
         right->low = 1;
         right->high = 2;
@@ -52,8 +52,8 @@ TEST_CASE("operator ==") {
 
 TEST_CASE("optimize") {
     std::string string;
-    REstring restring(string);
-    Parser parser(restring);
+    REx::REstring restring(string);
+    REx::Parser parser(restring);
     SECTION("nothing to optimise") {
         string = "a*";
         auto test_ret = parser.exper()->optimize();
@@ -69,7 +69,7 @@ TEST_CASE("optimize") {
             auto test_ret = parser.exper()->optimize();
 
             THEN("optimise to charset") {
-                auto correct_ast = new AST(AST::CHARSET);
+                auto correct_ast = new REx::AST(REx::AST::CHARSET);
                 correct_ast->add_character('a');
                 correct_ast->add_character('b');
                 correct_ast->add_character('c');
@@ -84,8 +84,8 @@ TEST_CASE("optimize") {
             string = "(a*)*";
             auto test_ret = parser.exper()->optimize();
             THEN("optimise to star") {
-                auto correct_ast = new AST(AST::STAR);
-                correct_ast->child = new AST(AST::CHARSET);
+                auto correct_ast = new REx::AST(REx::AST::STAR);
+                correct_ast->child = new REx::AST(REx::AST::CHARSET);
                 correct_ast->child->add_character('a');
 
                 CHECK((*test_ret == *correct_ast));
@@ -96,8 +96,8 @@ TEST_CASE("optimize") {
             string = "(a+)*";
             auto test_ret = parser.exper()->optimize();
             THEN("optimise to star") {
-                auto correct_ast = new AST(AST::STAR);
-                correct_ast->child = new AST(AST::CHARSET);
+                auto correct_ast = new REx::AST(REx::AST::STAR);
+                correct_ast->child = new REx::AST(REx::AST::CHARSET);
                 correct_ast->child->add_character('a');
 
                 CHECK((*test_ret == *correct_ast));
@@ -108,8 +108,8 @@ TEST_CASE("optimize") {
             string = "(a?)*";
             auto test_ret = parser.exper()->optimize();
             THEN("optimise to star") {
-                auto correct_ast = new AST(AST::STAR);
-                correct_ast->child = new AST(AST::CHARSET);
+                auto correct_ast = new REx::AST(REx::AST::STAR);
+                correct_ast->child = new REx::AST(REx::AST::CHARSET);
                 correct_ast->child->add_character('a');
 
                 CHECK((*test_ret == *correct_ast));
@@ -127,8 +127,8 @@ TEST_CASE("optimize") {
             string = "(a*)+";
             auto test_ret = parser.exper()->optimize();
             THEN("optimise to star") {
-                auto correct_ast = new AST(AST::STAR);
-                correct_ast->child = new AST(AST::CHARSET);
+                auto correct_ast = new REx::AST(REx::AST::STAR);
+                correct_ast->child = new REx::AST(REx::AST::CHARSET);
                 correct_ast->child->add_character('a');
 
                 CHECK((*test_ret == *correct_ast));
@@ -139,8 +139,8 @@ TEST_CASE("optimize") {
             string = "(a+)+";
             auto test_ret = parser.exper()->optimize();
             THEN("optimise to plus") {
-                auto correct_ast = new AST(AST::PLUS);
-                correct_ast->child = new AST(AST::CHARSET);
+                auto correct_ast = new REx::AST(REx::AST::PLUS);
+                correct_ast->child = new REx::AST(REx::AST::CHARSET);
                 correct_ast->child->add_character('a');
 
                 CHECK((*test_ret == *correct_ast));
@@ -151,8 +151,8 @@ TEST_CASE("optimize") {
             string = "(a?)+";
             auto test_ret = parser.exper()->optimize();
             THEN("optimise to star") {
-                auto correct_ast = new AST(AST::STAR);
-                correct_ast->child = new AST(AST::CHARSET);
+                auto correct_ast = new REx::AST(REx::AST::STAR);
+                correct_ast->child = new REx::AST(REx::AST::CHARSET);
                 correct_ast->child->add_character('a');
 
                 CHECK((*test_ret == *correct_ast));
@@ -171,8 +171,8 @@ TEST_CASE("optimize") {
             string = "(a*)?";
             auto test_ret = parser.exper()->optimize();
             THEN("optimise to star") {
-                auto correct_ast = new AST(AST::STAR);
-                correct_ast->child = new AST(AST::CHARSET);
+                auto correct_ast = new REx::AST(REx::AST::STAR);
+                correct_ast->child = new REx::AST(REx::AST::CHARSET);
                 correct_ast->child->add_character('a');
 
                 CHECK((*test_ret == *correct_ast));
@@ -183,8 +183,8 @@ TEST_CASE("optimize") {
             string = "(a+)?";
             auto test_ret = parser.exper()->optimize();
             THEN("optimise to star") {
-                auto correct_ast = new AST(AST::STAR);
-                correct_ast->child = new AST(AST::CHARSET);
+                auto correct_ast = new REx::AST(REx::AST::STAR);
+                correct_ast->child = new REx::AST(REx::AST::CHARSET);
                 correct_ast->child->add_character('a');
 
                 CHECK((*test_ret == *correct_ast));
@@ -195,8 +195,8 @@ TEST_CASE("optimize") {
             string = "(a?)?";
             auto test_ret = parser.exper()->optimize();
             THEN("optimise to option") {
-                auto correct_ast = new AST(AST::OPTION);
-                correct_ast->child = new AST(AST::CHARSET);
+                auto correct_ast = new REx::AST(REx::AST::OPTION);
+                correct_ast->child = new REx::AST(REx::AST::CHARSET);
                 correct_ast->child->add_character('a');
 
                 CHECK((*test_ret == *correct_ast));
@@ -214,8 +214,8 @@ TEST_CASE("optimize") {
             string = "(a*){2,5}";
             auto test_ret = parser.exper()->optimize();
             THEN("optimise to star") {
-                auto correct_ast = new AST(AST::STAR);
-                correct_ast->child = new AST(AST::CHARSET);
+                auto correct_ast = new REx::AST(REx::AST::STAR);
+                correct_ast->child = new REx::AST(REx::AST::CHARSET);
                 correct_ast->child->add_character('a');
 
                 CHECK((*test_ret == *correct_ast));
@@ -226,8 +226,8 @@ TEST_CASE("optimize") {
             string = "(a+){2,5}";
             auto test_ret = parser.exper()->optimize();
             THEN("optimise to plus") {
-                auto correct_ast = new AST(AST::PLUS);
-                correct_ast->child = new AST(AST::CHARSET);
+                auto correct_ast = new REx::AST(REx::AST::PLUS);
+                correct_ast->child = new REx::AST(REx::AST::CHARSET);
                 correct_ast->child->add_character('a');
 
                 CHECK((*test_ret == *correct_ast));
@@ -238,10 +238,10 @@ TEST_CASE("optimize") {
             string = "(a?){2,5}";
             auto test_ret = parser.exper()->optimize();
             THEN("optimise to 0 to high") {
-                auto correct_ast = new AST(AST::REPEAT);
+                auto correct_ast = new REx::AST(REx::AST::REPEAT);
                 correct_ast->low = 0;
                 correct_ast->high = 5;
-                correct_ast->child = new AST(AST::CHARSET);
+                correct_ast->child = new REx::AST(REx::AST::CHARSET);
                 correct_ast->child->add_character('a');
 
                 CHECK((*test_ret == *correct_ast));
@@ -259,8 +259,8 @@ TEST_CASE("optimize") {
             string = "(((a)*)*)*";
             auto test_ret = parser.exper()->optimize();
             THEN("optimise to star") {
-                auto correct_ast = new AST(AST::STAR);
-                correct_ast->child = new AST(AST::CHARSET);
+                auto correct_ast = new REx::AST(REx::AST::STAR);
+                correct_ast->child = new REx::AST(REx::AST::CHARSET);
                 correct_ast->child->add_character('a');
 
                 CHECK((*test_ret == *correct_ast));
@@ -271,8 +271,8 @@ TEST_CASE("optimize") {
             string = "(((a)*){1,10})*";
             auto test_ret = parser.exper()->optimize();
             THEN("optimise to star") {
-                auto correct_ast = new AST(AST::STAR);
-                correct_ast->child = new AST(AST::CHARSET);
+                auto correct_ast = new REx::AST(REx::AST::STAR);
+                correct_ast->child = new REx::AST(REx::AST::CHARSET);
                 correct_ast->child->add_character('a');
 
                 CHECK((*test_ret == *correct_ast));

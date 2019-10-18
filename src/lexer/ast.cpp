@@ -13,13 +13,13 @@
  *        (a*){m,n} -> a*, (a+){m,n} -> a+, (a?){m,n} -> a{0,n}
  *
  * **/
-AST *AST::optimize() {
+REx::AST *REx::AST::optimize() {
     this->left = this->left == nullptr ? nullptr : this->left->optimize();
     this->right = this->right == nullptr ? nullptr : this->right->optimize();
 
     if (this->type == AST::OR) {
         optimize_OR();
-    } else if (this->type == AST::STAR) {
+    } else if (this->type == REx::AST::STAR) {
         optimize_STAR();
     } else if (this->type == AST::PLUS) {
         optimize_PLUS();
@@ -34,7 +34,7 @@ AST *AST::optimize() {
     return this;
 }
 
-void AST::optimize_OR() {
+void REx::AST::optimize_OR() {
     if (this->left->type == AST::CHARSET && this->right->type == CHARSET) {
         this->charset = this->left->charset | this->right->charset;
         this->type = AST::CHARSET;
@@ -47,71 +47,71 @@ void AST::optimize_OR() {
     }
 }
 
-void AST::optimize_STAR() {
-    if (this->child->type == AST::STAR || this->child->type == AST::PLUS || this->child->type == AST::OPTION) {
+void REx::AST::optimize_STAR() {
+    if (this->child->type == REx::AST::STAR || this->child->type == AST::PLUS || this->child->type == AST::OPTION) {
         delete_child();
 
         this->type = AST::STAR;
     }
 }
 
-void AST::optimize_PLUS() {
-    if (this->child->type == AST::STAR || this->child->type == AST::OPTION) {
+void REx::AST::optimize_PLUS() {
+    if (this->child->type == REx::AST::STAR || this->child->type == AST::OPTION) {
         delete_child();
 
         this->type = AST::STAR;
-    } else if (this->child->type == AST::PLUS) {
+    } else if (this->child->type == REx::AST::PLUS) {
         delete_child();
 
         this->type = AST::PLUS;
     }
 }
 
-void AST::optimize_OPTION() {
-    if (this->child->type == AST::STAR || this->child->type == AST::PLUS) {
+void REx::AST::optimize_OPTION() {
+    if (this->child->type == REx::AST::STAR || this->child->type == REx::AST::PLUS) {
         delete_child();
 
         this->type = AST::STAR;
     } else if (this->child->type == AST::OPTION) {
         delete_child();
 
-        this->type = AST::OPTION;
+        this->type = REx::AST::OPTION;
     }
 }
 
-void AST::optimize_AND() {
+void REx::AST::optimize_AND() {
 
 }
 
-void AST::optimize_REPEAT() {
-    if (this->child->type == AST::STAR) {
+void REx::AST::optimize_REPEAT() {
+    if (this->child->type == REx::AST::STAR) {
         delete_child();
 
-        this->type = AST::STAR;
+        this->type = REx::AST::STAR;
         this->low = 0;
         this->high = 0;
-    } else if (this->child->type == AST::PLUS) {
+    } else if (this->child->type == REx::AST::PLUS) {
         delete_child();
 
-        this->type = AST::PLUS;
+        this->type = REx::AST::PLUS;
         this->low = 0;
         this->high = 0;
-    } else if (this->child->type == AST::OPTION) {
+    } else if (this->child->type == REx::AST::OPTION) {
         delete_child();
 
-        this->type = AST::REPEAT;
+        this->type = REx::AST::REPEAT;
         this->low = 0;
     }
 }
 
-void AST::delete_child() {
+void REx::AST::delete_child() {
     auto t = this->child;
     this->child = this->child->child;
     t->child = nullptr;
     delete t;
 }
 
-bool AST::is_valid() {
+bool REx::AST::is_valid() {
     //not support expressions like ((((a{1,100})){1,100}){1,100}){1,100}
     if (this->type == REPEAT && this->left->type == REPEAT) {
         return false;

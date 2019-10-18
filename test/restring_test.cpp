@@ -5,11 +5,11 @@
 #define CATCH_CONFIG_MAIN
 
 #include "catch.hpp"
-#include "../src/lexer/restring.h"
+#include "../src/lexer/parser.h"
 
 TEST_CASE("should return the right size of string", "[restring][size]") {
     std::string string = "this is a template re string";
-    REstring restring(string);
+    REx::REstring restring(string);
     SECTION("should get right size and char") {
         CHECK(string.size() == restring.size());
         CHECK('t' == restring[0]);
