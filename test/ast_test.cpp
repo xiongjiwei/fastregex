@@ -3,8 +3,8 @@
 //
 
 #include "catch.hpp"
-#include "../src/include/ast.h"
-#include "../src/include/parser.h"
+#include "../src/lexer/ast.h"
+#include "../src/lexer/parser.h"
 
 TEST_CASE("operator ==") {
     SECTION("should return true when pointer is same") {

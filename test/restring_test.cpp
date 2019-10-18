@@ -5,7 +5,7 @@
 #define CATCH_CONFIG_MAIN
 
 #include "catch.hpp"
-#include "../src/include/restring.h"
+#include "../src/lexer/restring.h"
 
 TEST_CASE("should return the right size of string", "[restring][size]") {
     std::string string = "this is a template re string";

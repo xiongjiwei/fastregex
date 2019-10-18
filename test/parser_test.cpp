@@ -5,7 +5,7 @@
 #include "catch.hpp"
 #include <climits>
 #include <iostream>
-#include "../src/include/parser.h"
+#include "../src/lexer/parser.h"
 
 TEST_CASE("chars() method should build correct AST by given regular expression") {
     std::string string = R"(f\)\4\x\x10.\)";
