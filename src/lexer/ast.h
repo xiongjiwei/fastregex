@@ -33,7 +33,7 @@ namespace REx {
         }
 
         void add_character(char ch) {
-            this->charset[ch] = 1;
+            this->charset[ch] = true;
         }
 
         AST *left = nullptr;
