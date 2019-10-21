@@ -4,7 +4,28 @@
 
 #include "ReVM.h"
 
-void REx::ReVM::run_thread(REx::Thread *thread) {
+void REx::ReVM::start_vm() {
+    for (size_t i = 0; i < matched_data.length();) {
+        i = do_match(i);
+    }
+}
+
+int REx::ReVM::do_match(int sp) {
+    append_thread(new Thread(0, sp, sp));
+    while (!running_thread_list.empty()) {
+        if (run_thread(running_thread_list.front())) {
+            destroy_queue();
+
+            return success_thread_list.back().end;
+        }
+        delete running_thread_list.front();
+        running_thread_list.pop();
+    }
+
+    return sp + 1;
+}
+
+bool REx::ReVM::run_thread(REx::Thread *thread) {
     while (thread->alive) {
         switch (program[thread->PC]) {
             case character:
@@ -18,32 +39,27 @@ void REx::ReVM::run_thread(REx::Thread *thread) {
                 break;
             case match:
                 ins_match(thread);
-                break;
+                return true;
+            default:
+                return false;
         }
     }
-}
 
-void REx::ReVM::start_vm() {
-    for (size_t i = 0; i < matched_data.length(); ++i) {
-        append_thread(new Thread(0, i, i));
-        for (auto thread : running_thread_list) {
-            run_thread(thread);
-        }
-    }
+    return false;
 }
 
 void REx::ReVM::ins_character(REx::Thread *thread) {
-    if (program[thread->PC + 1] == matched_data[thread->SP]) {
-        thread->SP += 2;
-        thread->PC++;
+    if (thread->SP < matched_data.length() && program[thread->PC + 1] == matched_data[thread->SP]) {
+        thread->SP += 1;
+        thread->PC += 2;
     } else {
-        destroy_thread(thread);
+        terminal_thread(thread);
     }
 }
 
 void REx::ReVM::ins_split(REx::Thread *thread) {
-    thread->PC = program[thread->PC + 1];
     append_thread(new Thread(program[thread->PC + 2], thread->SP, thread->sp_start_point));
+    thread->PC = program[thread->PC + 1];
 }
 
 void REx::ReVM::ins_jmp(REx::Thread *thread) {
@@ -52,15 +68,15 @@ void REx::ReVM::ins_jmp(REx::Thread *thread) {
 
 void REx::ReVM::ins_match(REx::Thread *thread) {
     record_success(thread->sp_start_point, thread->SP);
+    terminal_thread(thread);
 }
 
 void REx::ReVM::append_thread(REx::Thread *thread) {
-    running_thread_list.push_back(thread);
+    running_thread_list.push(thread);
 }
 
-void REx::ReVM::destroy_thread(REx::Thread *thread) {
+void REx::ReVM::terminal_thread(REx::Thread *thread) {
     thread->alive = false;
-    delete thread;
 }
 
 void REx::ReVM::record_success(size_t start, size_t end) {
@@ -68,4 +84,11 @@ void REx::ReVM::record_success(size_t start, size_t end) {
     matchedRange.start = start;
     matchedRange.end = end;
     success_thread_list.push_back(matchedRange);
+}
+
+void REx::ReVM::destroy_queue() {
+    while (!running_thread_list.empty()) {
+        delete running_thread_list.front();
+        running_thread_list.pop();
+    }
 }

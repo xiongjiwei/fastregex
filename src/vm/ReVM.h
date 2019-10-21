@@ -7,6 +7,8 @@
 
 #include <vector>
 #include <string>
+#include <queue>
+#include <bitset>
 
 namespace REx{
 
@@ -36,13 +38,24 @@ namespace REx{
 
     class ReVM {
     public:
-        ReVM(const std::string &matched_data_, const char *&program_): matched_data(matched_data_), program(program_) {}
+        ReVM(const std::string &matched_data_, const char *program_): matched_data(matched_data_), program(program_) {}
 
         void start_vm();
+        std::vector<Matched_range> get_result() {
+            return success_thread_list;
+        }
+
+        std::queue<Thread *> get_thread_info() {
+            return running_thread_list;
+        }
     private:
-        void run_thread(Thread *thread);
+        int do_match(int sp);
+
+        bool run_thread(Thread *thread);
         void append_thread(Thread *thread);
-        void destroy_thread(Thread *thread);
+        void terminal_thread(Thread *thread);
+
+        void destroy_queue();
 
         void record_success(size_t start, size_t end);
 
@@ -51,10 +64,12 @@ namespace REx{
         void ins_jmp(Thread *thread);
         void ins_match(Thread *thread);
 
-        const char *&program;
+        const char *program;
         const std::string &matched_data;
-        std::vector<Thread *> running_thread_list;
+        std::queue<Thread *> running_thread_list;
         std::vector<Matched_range> success_thread_list;
+
+        std::bitset<8> error_code;
     };
 }
 
