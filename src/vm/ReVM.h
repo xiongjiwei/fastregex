@@ -21,11 +21,18 @@ namespace REx{
         int PC;
         int SP;
 
+        int sp_start_point;
+
         bool alive = true;
         bool matched = false;
 
-        THREAD (int pc, int sp): PC(pc), SP(sp) {};
+        THREAD (int pc, int sp, int sp_start_point): PC(pc), SP(sp), sp_start_point(sp_start_point) {};
     } Thread;
+
+    typedef struct {
+        size_t start;
+        size_t end;
+    } Matched_range;
 
     class ReVM {
     public:
@@ -37,6 +44,8 @@ namespace REx{
         void append_thread(Thread *thread);
         void destroy_thread(Thread *thread);
 
+        void record_success(size_t start, size_t end);
+
         void ins_character(Thread *thread);
         void ins_split(Thread *thread);
         void ins_jmp(Thread *thread);
@@ -44,7 +53,8 @@ namespace REx{
 
         const char *&program;
         const std::string &matched_data;
-        std::vector<Thread *> thread_list;
+        std::vector<Thread *> running_thread_list;
+        std::vector<Matched_range> success_thread_list;
     };
 }
 

@@ -24,9 +24,11 @@ void REx::ReVM::run_thread(REx::Thread *thread) {
 }
 
 void REx::ReVM::start_vm() {
-    append_thread(new Thread(0, 0));
-    for (auto thread : thread_list) {
-        run_thread(thread);
+    for (size_t i = 0; i < matched_data.length(); ++i) {
+        append_thread(new Thread(0, i, i));
+        for (auto thread : running_thread_list) {
+            run_thread(thread);
+        }
     }
 }
 
@@ -40,9 +42,8 @@ void REx::ReVM::ins_character(REx::Thread *thread) {
 }
 
 void REx::ReVM::ins_split(REx::Thread *thread) {
-    append_thread(new Thread(program[thread->PC + 1], thread->SP));
-    append_thread(new Thread(program[thread->PC + 2], thread->SP));
-    destroy_thread(thread);
+    thread->PC = program[thread->PC + 1];
+    append_thread(new Thread(program[thread->PC + 2], thread->SP, thread->sp_start_point));
 }
 
 void REx::ReVM::ins_jmp(REx::Thread *thread) {
@@ -50,14 +51,21 @@ void REx::ReVM::ins_jmp(REx::Thread *thread) {
 }
 
 void REx::ReVM::ins_match(REx::Thread *thread) {
-
+    record_success(thread->sp_start_point, thread->SP);
 }
 
 void REx::ReVM::append_thread(REx::Thread *thread) {
-    thread_list.push_back(thread);
+    running_thread_list.push_back(thread);
 }
 
 void REx::ReVM::destroy_thread(REx::Thread *thread) {
     thread->alive = false;
     delete thread;
+}
+
+void REx::ReVM::record_success(size_t start, size_t end) {
+    Matched_range matchedRange;
+    matchedRange.start = start;
+    matchedRange.end = end;
+    success_thread_list.push_back(matchedRange);
 }
