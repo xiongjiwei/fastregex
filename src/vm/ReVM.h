@@ -41,13 +41,6 @@ namespace REx{
         ReVM(const std::string &matched_data_, const char *program_): matched_data(matched_data_), program(program_) {}
 
         void start_vm();
-        std::vector<Matched_range> get_result() {
-            return success_thread_list;
-        }
-
-        std::queue<Thread *> get_thread_info() {
-            return running_thread_list;
-        }
     private:
         int do_match(int sp);
 
