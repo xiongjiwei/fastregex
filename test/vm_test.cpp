@@ -9,30 +9,32 @@
 
 TEST_CASE("vm instructions test") {
     SECTION("character instructions") {
-        std::string matched_string = "a";
-        char program[] = {0x01, 'a', 0x00};
-        REx::ReVM vm = REx::ReVM(matched_string, program);
-        auto *thread = new REx::Thread(0, 0, 0);
-        vm.ins_character(thread);
+        WHEN("matched") {
+            std::string matched_string = "a";
+            REx::BYTE program[] = {0x01, 'a', 0x00};
+            REx::ReVM vm = REx::ReVM(matched_string, program);
+            auto *thread = new REx::Thread(0, 0, 0);
+            vm.ins_character(thread);
 
-        CHECK(thread->alive);
-        CHECK(thread->PC == 2);
-        CHECK(thread->SP == 1);
-    }
+            CHECK(thread->alive);
+            CHECK(thread->PC == 2);
+            CHECK(thread->SP == 1);
+        }
 
-    SECTION("character instructions") {
-        std::string matched_string = "a";
-        char program[] = {0x01, 'b', 0x00};
-        REx::ReVM vm = REx::ReVM(matched_string, program);
-        auto *thread = new REx::Thread(0, 0, 0);
-        vm.ins_character(thread);
+        WHEN("not matched") {
+            std::string matched_string = "a";
+            REx::BYTE program[] = {0x01, 'b', 0x00};
+            REx::ReVM vm = REx::ReVM(matched_string, program);
+            auto *thread = new REx::Thread(0, 0, 0);
+            vm.ins_character(thread);
 
-        CHECK_FALSE(thread->alive);
+            CHECK_FALSE(thread->alive);
+        }
     }
 
     SECTION("split instructions") {
         std::string matched_string = "a";
-        char program[] = {0x02, 0x00, 0x03, 0x00, 0x06};
+        REx::BYTE program[] = {0x02, 0x00, 0x03, 0x00, 0x06};
         REx::ReVM vm = REx::ReVM(matched_string, program);
         auto *first_thread = new REx::Thread(0, 0, 0);
         vm.ins_split(first_thread);
@@ -44,7 +46,7 @@ TEST_CASE("vm instructions test") {
 
     SECTION("jmp instructions") {
         std::string matched_string = "a";
-        char program[] = {0x03, 0x00, 0x03, 0x00, 0x06};
+        REx::BYTE program[] = {0x03, 0x00, 0x03, 0x00, 0x06};
         REx::ReVM vm = REx::ReVM(matched_string, program);
         auto *thread = new REx::Thread(0, 0, 0);
         vm.ins_jmp(thread);
@@ -54,7 +56,7 @@ TEST_CASE("vm instructions test") {
 
     SECTION("match instructions") {
         std::string matched_string = "aaaaa";
-        char program[] = {0x00};
+        REx::BYTE program[] = {0x00};
         REx::ReVM vm = REx::ReVM(matched_string, program);
         auto *thread = new REx::Thread(0, 3, 0);
         vm.ins_match(thread);
@@ -65,9 +67,70 @@ TEST_CASE("vm instructions test") {
         CHECK(vm.success_thread_list.at(0).end == 3);
     }
 
+    SECTION("loopch instructions") {
+        WHEN("matched") {
+            std::string matched_string = "aaaaabbb";
+            REx::BYTE program[] = {0x05, 'a', 0x00, 0x03};
+            REx::ReVM vm = REx::ReVM(matched_string, program);
+            auto *thread = new REx::Thread(0, 0, 0);
+            vm.ins_loopch(thread);
+
+            CHECK(thread->alive);
+            CHECK(thread->PC == 4);
+            CHECK(thread->SP == 3);
+        }
+
+        WHEN("not matched") {
+            std::string matched_string = "aaaaabbb";
+            REx::BYTE program[] = {0x05, 'a', 0x00, 0x07};
+            REx::ReVM vm = REx::ReVM(matched_string, program);
+            auto *thread = new REx::Thread(0, 0, 0);
+            vm.ins_loopch(thread);
+
+            CHECK_FALSE(thread->alive);
+            CHECK(vm.running_thread_list.empty());
+        }
+    }
+
+    SECTION("oneof instructions") {
+        WHEN("matched") {
+            std::string matched_string = "a";
+            REx::BYTE program[] = {0x06,
+                                   0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+                                   0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+                                   0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+                                   0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+            };
+            REx::ReVM vm = REx::ReVM(matched_string, program);
+            auto *thread = new REx::Thread(0, 0, 0);
+            vm.ins_oneof(thread);
+
+            CHECK(thread->alive);
+            CHECK(thread->PC == 33);
+            CHECK(thread->SP == 2);
+        }
+
+        WHEN("not matched") {
+            std::string matched_string = "a";
+            REx::BYTE program[] = {0x06,
+                                   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                                   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                                   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                                   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                                   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            };
+            REx::ReVM vm = REx::ReVM(matched_string, program);
+            auto *thread = new REx::Thread(0, 0, 0);
+            vm.ins_oneof(thread);
+
+            CHECK_FALSE(thread->alive);
+            CHECK(vm.running_thread_list.empty());
+        }
+    }
+
     SECTION("vm") {
         std::string matched_string = "abbbc";
-        char program[] = {0x01, 'a', 0x02, 0x00, 0x07, 0x00, 0x0c, 0x01, 'b', 0x03, 0x00, 0x02, 0x01, 'c', 0x00};
+        REx::BYTE program[] = {0x01, 'a', 0x02, 0x00, 0x07, 0x00, 0x0c, 0x01, 'b', 0x03, 0x00, 0x02, 0x01, 'c', 0x00};
         REx::ReVM vm = REx::ReVM(matched_string, program);
         vm.start_vm();
 

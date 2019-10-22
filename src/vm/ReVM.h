@@ -11,16 +11,17 @@
 #include <bitset>
 
 namespace REx{
+    typedef uint8_t BYTE;
 
     enum INSTRUCTIONS {
-        character   = 0x01,         //character char<1>     :   whether sp == char
-        split       = 0x02,         //split L1<2>, L2<2>    :   new thread  pc = L1, pc = L2
-        jmp         = 0x03,         //jmp L<2>              :   jump to L
+        character   = 0x01,         //character char<1>         :whether sp == char
+        split       = 0x02,         //split L1<2>, L2<2>        :new thread  pc = L1, pc = L2
+        jmp         = 0x03,         //jmp L<2>                  :jump to L
 
-        oneof       = 0x04,         //oneof set<32>         :   whether sp in set
-        loop        = 0x05,         //loop L<2> times<2>    :   loop L n times
+        oneof       = 0x04,         //oneof set<32>             :whether sp in set
+        loopch      = 0x05,         //loop char<1> times<2>     :loop char n times
 
-        match       = 0x00,         //match                 :   end sign
+        match       = 0x00,         //match                     :end sign
     };
 
     typedef struct THREAD{
@@ -42,7 +43,7 @@ namespace REx{
 
     class ReVM {
     public:
-        ReVM(const std::string &matched_data_, const char *program_): matched_data(matched_data_), program(program_) {}
+        ReVM(const std::string &matched_data_, const BYTE *program_): matched_data(matched_data_), program(program_) {}
 
         void start_vm();
     private:
@@ -60,10 +61,11 @@ namespace REx{
         void ins_split(Thread *thread);
         void ins_jmp(Thread *thread);
         void ins_match(Thread *thread);
-        void ins_loop(Thread *thread);
+        void ins_loopch(Thread *thread);
         void ins_oneof(Thread *thread);
 
-        const char *program;
+        int get_PC(int pc) const;
+        const BYTE *program;
         const std::string &matched_data;
         std::queue<Thread *> running_thread_list;
         std::vector<Matched_range> success_thread_list;

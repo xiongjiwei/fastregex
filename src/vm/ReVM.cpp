@@ -58,12 +58,12 @@ void REx::ReVM::ins_character(REx::Thread *thread) {
 }
 
 void REx::ReVM::ins_split(REx::Thread *thread) {
-    append_thread(new Thread(program[thread->PC + 3] * 256 + program[thread->PC + 4], thread->SP, thread->sp_start_point));
-    thread->PC = program[thread->PC + 1] * 256 + program[thread->PC + 2];
+    append_thread(new Thread(get_PC(thread->PC + 3), thread->SP, thread->sp_start_point));
+    thread->PC = get_PC(thread->PC + 1);
 }
 
 void REx::ReVM::ins_jmp(REx::Thread *thread) {
-    thread->PC = program[thread->PC + 1] * 256 + program[thread->PC + 2];
+    thread->PC = get_PC(thread->PC + 1);
 }
 
 void REx::ReVM::ins_match(REx::Thread *thread) {
@@ -71,12 +71,24 @@ void REx::ReVM::ins_match(REx::Thread *thread) {
     terminal_thread(thread);
 }
 
-void REx::ReVM::ins_loop(REx::Thread *thread) {
-    int times = thread
+void REx::ReVM::ins_loopch(REx::Thread *thread) {
+    int times = get_PC(thread->PC + 2);
+
+    while (times != 0) {
+        if (thread->SP < matched_data.length() && program[thread->PC + 1] == matched_data[thread->SP]) {
+            thread->SP += 1;
+            times--;
+        } else {
+            terminal_thread(thread);
+            return;
+        }
+    }
+
+    thread->PC += 4;
 }
 
 void REx::ReVM::ins_oneof(REx::Thread *thread) {
-
+    
 }
 
 void REx::ReVM::append_thread(REx::Thread *thread) {
@@ -99,4 +111,8 @@ void REx::ReVM::destroy_queue() {
         delete running_thread_list.front();
         running_thread_list.pop();
     }
+}
+
+int REx::ReVM::get_PC(int pc) const {
+    return program[pc] * 256 + program[pc + 1];
 }
