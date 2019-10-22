@@ -32,7 +32,7 @@ TEST_CASE("vm instructions test") {
 
     SECTION("split instructions") {
         std::string matched_string = "a";
-        char program[] = {0x02, 0x03, 0x06};
+        char program[] = {0x02, 0x00, 0x03, 0x00, 0x06};
         REx::ReVM vm = REx::ReVM(matched_string, program);
         auto *first_thread = new REx::Thread(0, 0, 0);
         vm.ins_split(first_thread);
@@ -44,7 +44,7 @@ TEST_CASE("vm instructions test") {
 
     SECTION("jmp instructions") {
         std::string matched_string = "a";
-        char program[] = {0x03, 0x03, 0x06};
+        char program[] = {0x03, 0x00, 0x03, 0x00, 0x06};
         REx::ReVM vm = REx::ReVM(matched_string, program);
         auto *thread = new REx::Thread(0, 0, 0);
         vm.ins_jmp(thread);
@@ -67,7 +67,7 @@ TEST_CASE("vm instructions test") {
 
     SECTION("vm") {
         std::string matched_string = "abbbc";
-        char program[] = {0x01, 'a', 0x02, 0x05, 0x09, 0x01, 'b', 0x03, 0x02, 0x01, 'c', 0x00};
+        char program[] = {0x01, 'a', 0x02, 0x00, 0x07, 0x00, 0x0c, 0x01, 'b', 0x03, 0x00, 0x02, 0x01, 'c', 0x00};
         REx::ReVM vm = REx::ReVM(matched_string, program);
         vm.start_vm();
 
