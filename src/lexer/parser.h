@@ -9,7 +9,6 @@
 #include <unordered_set>
 #include <vector>
 #include <string>
-#include "nfa.h"
 #include "ast.h"
 namespace REx {
     class REstring {

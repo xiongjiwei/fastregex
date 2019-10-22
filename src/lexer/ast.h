@@ -11,6 +11,11 @@
 
 namespace REx {
 
+    template <size_t N>
+    static char *cast_to_byte(std::bitset<N> bits) {
+
+    }
+
     class AST {
     public:
         enum NODETYPE {
@@ -59,8 +64,14 @@ namespace REx {
         void set_charset_negative() {
             this->charset.flip();
         }
+
         std::bitset<256> get_charset() {
             return charset;
+        }
+
+        void test() {
+            std::bitset<16> s;
+            char* a = cast_to_byte(s);
         }
 
     private:
