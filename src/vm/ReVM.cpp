@@ -37,6 +37,10 @@ bool REx::ReVM::run_thread(REx::Thread *thread) {
             case split:
                 ins_split(thread);
                 break;
+            case loopch:
+                ins_loopch(thread);
+            case oneof:
+                ins_oneof(thread);
             case match:
                 ins_match(thread);
                 return true;
@@ -88,7 +92,18 @@ void REx::ReVM::ins_loopch(REx::Thread *thread) {
 }
 
 void REx::ReVM::ins_oneof(REx::Thread *thread) {
-    
+    int index = matched_data[thread->SP] / 8;       //index of set<32>
+    int bit_index = matched_data[thread->SP] % 8;   //index of bit in BYTE
+
+    BYTE mask = 0x80u >> bit_index;                 //1000 0000
+
+    BYTE i = program[thread->PC + 1 + index];
+    if ((i & mask) != 0) {
+        thread->SP += 1;
+        thread->PC += 33;
+    } else {
+        terminal_thread(thread);
+    }
 }
 
 void REx::ReVM::append_thread(REx::Thread *thread) {

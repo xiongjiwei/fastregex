@@ -107,13 +107,12 @@ TEST_CASE("vm instructions test") {
 
             CHECK(thread->alive);
             CHECK(thread->PC == 33);
-            CHECK(thread->SP == 2);
+            CHECK(thread->SP == 1);
         }
 
         WHEN("not matched") {
             std::string matched_string = "a";
             REx::BYTE program[] = {0x06,
-                                   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -125,6 +124,39 @@ TEST_CASE("vm instructions test") {
 
             CHECK_FALSE(thread->alive);
             CHECK(vm.running_thread_list.empty());
+        }
+
+        WHEN("matched") {
+            std::string matched_string = "a";
+            std::bitset<256> bitset;
+            bitset['a'] = true;
+            auto bytes = REx::cast_to_byte(bitset);
+            REx::BYTE program[33] = {0x06};
+            memcpy(program + 1,  bytes, 32);
+            delete bytes;
+            REx::ReVM vm = REx::ReVM(matched_string, program);
+            auto *thread = new REx::Thread(0, 0, 0);
+            vm.ins_oneof(thread);
+
+            CHECK(thread->alive);
+            CHECK(thread->PC == 33);
+            CHECK(thread->SP == 1);
+        }
+
+        WHEN("not matched") {
+            std::string matched_string = "a";
+            std::bitset<256> bitset;
+            bitset['a'] = true;
+            bitset.flip();
+            auto bytes = REx::cast_to_byte(bitset);
+            REx::BYTE program[33] = {0x06};
+            memcpy(program + 1,  bytes, 32);
+            delete bytes;
+            REx::ReVM vm = REx::ReVM(matched_string, program);
+            auto *thread = new REx::Thread(0, 0, 0);
+            vm.ins_oneof(thread);
+
+            CHECK_FALSE(thread->alive);
         }
     }
 
