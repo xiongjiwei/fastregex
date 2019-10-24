@@ -1,5 +1,5 @@
 #include <iostream>
-#include "src/lexer/fastre.h"
+#include "src/re/fastre.h"
 
 int main() {
     std::cout << "Hello, World!" << std::endl;
