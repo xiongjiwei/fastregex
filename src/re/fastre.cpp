@@ -3,7 +3,7 @@
 //
 
 #include "fastre.h"
-#include "parser.h"
+#include "../lexer/parser.h"
 
 void fastre::compile(const std::string& pattern_) {
     REx::REstring restring(pattern_);
