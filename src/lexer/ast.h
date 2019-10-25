@@ -5,9 +5,6 @@
 #ifndef FASTREGEXCPP_AST_H
 #define FASTREGEXCPP_AST_H
 
-
-#include <unordered_set>
-#include <bitset>
 #include "../re/rex.h"
 
 namespace REx {
@@ -61,7 +58,7 @@ namespace REx {
             this->charset.flip();
         }
 
-        std::bitset<256> get_charset() {
+        std::bitset<256> & get_charset() {
             return charset;
         }
 
