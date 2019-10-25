@@ -1,11 +1,22 @@
 //
 // Created by admin on 2019/10/24.
 //
-
-#include <cstdint>
-
+#ifndef FASTREGEXCPP_RE_H
+#define FASTREGEXCPP_RE_H
+#include <bitset>
 namespace REx {
     typedef uint8_t BYTE;
+
+    enum INSTRUCTIONS {
+        character   = 0x01,         //character char<1>         :whether sp == char
+        split       = 0x02,         //split L1<2>, L2<2>        :new thread  pc = L1, pc = L2
+        jmp         = 0x03,         //jmp L<2>                  :jump to L
+
+        oneof       = 0x04,         //oneof set<32>             :sp in set
+        loopch      = 0x05,         //loop char<1> times<2>     :loop char n times
+
+        match       = 0x00,         //match                     :end sign
+    };
 
     template<size_t N>
     static BYTE *cast_to_byte(std::bitset<N> bits) {
@@ -27,3 +38,5 @@ namespace REx {
         return char_byte;
     }
 }
+
+#endif //FASTREGEXCPP_RE_H
