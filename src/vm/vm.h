@@ -2,8 +2,8 @@
 // Created by admin on 2019/10/18.
 //
 
-#ifndef FASTREGEXCPP_REVM_H
-#define FASTREGEXCPP_REVM_H
+#ifndef FASTREGEXCPP_VM_H
+#define FASTREGEXCPP_VM_H
 
 #include <vector>
 #include <string>
@@ -13,16 +13,7 @@
 
 namespace REx{
 
-    enum INSTRUCTIONS {
-        character   = 0x01,         //character char<1>         :whether sp == char
-        split       = 0x02,         //split L1<2>, L2<2>        :new thread  pc = L1, pc = L2
-        jmp         = 0x03,         //jmp L<2>                  :jump to L
 
-        oneof       = 0x04,         //oneof set<32>             :sp in set
-        loopch      = 0x05,         //loop char<1> times<2>     :loop char n times
-
-        match       = 0x00,         //match                     :end sign
-    };
 
     typedef struct THREAD{
         int PC;
@@ -41,9 +32,9 @@ namespace REx{
         size_t end;
     } Matched_range;
 
-    class ReVM {
+    class vm {
     public:
-        ReVM(const std::string &matched_data_, const BYTE *program_): matched_data(matched_data_), program(program_) {}
+        vm(const std::string &matched_data_, const BYTE *program_): matched_data(matched_data_), program(program_) {}
 
         void start_vm();
     private:
@@ -74,4 +65,4 @@ namespace REx{
     };
 }
 
-#endif //FASTREGEXCPP_REVM_H
+#endif //FASTREGEXCPP_VM_H
