@@ -19,7 +19,7 @@ REx::AST *REx::AST::optimize() {
 
     if (this->type == AST::OR) {
         optimize_OR();
-    } else if (this->type == REx::AST::STAR) {
+    } else if (this->type == AST::STAR) {
         optimize_STAR();
     } else if (this->type == AST::PLUS) {
         optimize_PLUS();
