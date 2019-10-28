@@ -12,9 +12,6 @@
 #include "../re/rex.h"
 
 namespace REx{
-
-
-
     typedef struct THREAD{
         int PC;
         int SP;

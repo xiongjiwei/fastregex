@@ -62,12 +62,12 @@ void REx::vm::ins_character(REx::Thread *thread) {
 }
 
 void REx::vm::ins_split(REx::Thread *thread) {
-    append_thread(new Thread(get_PC(thread->PC + 3), thread->SP, thread->sp_start_point));
-    thread->PC = get_PC(thread->PC + 1);
+    append_thread(new Thread(thread->PC + get_PC(thread->PC + 3), thread->SP, thread->sp_start_point));
+    thread->PC = get_PC(thread->PC + 1) + thread->PC;
 }
 
 void REx::vm::ins_jmp(REx::Thread *thread) {
-    thread->PC = get_PC(thread->PC + 1);
+    thread->PC = get_PC(thread->PC + 1) + thread->PC;
 }
 
 void REx::vm::ins_match(REx::Thread *thread) {
@@ -76,7 +76,7 @@ void REx::vm::ins_match(REx::Thread *thread) {
 }
 
 void REx::vm::ins_loopch(REx::Thread *thread) {
-    int times = get_PC(thread->PC + 2);
+    int times = program[thread->PC + 2] * 256 + program[thread->PC + 3];
 
     while (times != 0) {
         if (thread->SP < matched_data.length() && program[thread->PC + 1] == matched_data[thread->SP]) {
@@ -129,5 +129,7 @@ void REx::vm::destroy_queue() {
 }
 
 int REx::vm::get_PC(int pc) const {
-    return program[pc] * 256 + program[pc + 1];
+    int negative = (program[pc] & 0x80u) == 0 ? 1 : -1;      //when highest bit is 1 the number is negative, or positive.
+    BYTE h = program[pc] & 0x7Fu;                            //
+    return (int) (h * 128u + program[pc + 1]) * negative;
 }
