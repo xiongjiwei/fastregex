@@ -2,6 +2,7 @@
 // Created by admin on 2019/10/18.
 //
 
+#include <cstring>
 #include "vm.h"
 
 void REx::vm::start_vm() {
@@ -62,12 +63,12 @@ void REx::vm::ins_character(REx::Thread *thread) {
 }
 
 void REx::vm::ins_split(REx::Thread *thread) {
-    append_thread(new Thread(thread->PC + get_PC(thread->PC + 3), thread->SP, thread->sp_start_point));
-    thread->PC = get_PC(thread->PC + 1) + thread->PC;
+    append_thread(new Thread(thread->PC + bit16_to_int16(thread->PC + 3), thread->SP, thread->sp_start_point));
+    thread->PC = bit16_to_int16(thread->PC + 1) + thread->PC;
 }
 
 void REx::vm::ins_jmp(REx::Thread *thread) {
-    thread->PC = get_PC(thread->PC + 1) + thread->PC;
+    thread->PC = bit16_to_int16(thread->PC + 1) + thread->PC;
 }
 
 void REx::vm::ins_match(REx::Thread *thread) {
@@ -128,8 +129,8 @@ void REx::vm::destroy_queue() {
     }
 }
 
-int REx::vm::get_PC(int pc) const {
-    int negative = (program[pc] & 0x80u) == 0 ? 1 : -1;      //when highest bit is 1 the number is negative, or positive.
-    BYTE h = program[pc] & 0x7Fu;                            //
-    return (int) (h * 128u + program[pc + 1]) * negative;
+int16_t REx::vm::bit16_to_int16(int pc) const {
+    int16_t t = 0;
+    memcpy(&t, program + pc, 2);
+    return t;
 }

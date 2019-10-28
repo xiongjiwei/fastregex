@@ -35,6 +35,10 @@ TEST_CASE("vm instructions test") {
     SECTION("split instructions") {
         std::string matched_string = "a";
         REx::BYTE program[] = {0x02, 0x00, 0x03, 0x00, 0x06};
+        int16_t line_num = 3;
+        memcpy(program + 1, &line_num, 2);
+        line_num = 6;
+        memcpy(program + 3, &line_num, 2);
         REx::vm vm = REx::vm(matched_string, program);
         auto *first_thread = new REx::Thread(0, 0, 0);
         vm.ins_split(first_thread);
@@ -47,6 +51,8 @@ TEST_CASE("vm instructions test") {
     SECTION("jmp instructions") {
         std::string matched_string = "a";
         REx::BYTE program[] = {0x03, 0x00, 0x03, 0x00, 0x06};
+        int16_t line_num = 3;
+        memcpy(program + 1, &line_num, 2);
         REx::vm vm = REx::vm(matched_string, program);
         auto *thread = new REx::Thread(0, 0, 0);
         vm.ins_jmp(thread);
@@ -83,6 +89,8 @@ TEST_CASE("vm instructions test") {
         WHEN("not matched") {
             std::string matched_string = "aaaaabbb";
             REx::BYTE program[] = {0x05, 'a', 0x00, 0x07};
+            int16_t times = 7;
+            memcpy(program + 2, &times, 2);
             REx::vm vm = REx::vm(matched_string, program);
             auto *thread = new REx::Thread(0, 0, 0);
             vm.ins_loopch(thread);
@@ -163,6 +171,12 @@ TEST_CASE("vm instructions test") {
     SECTION("vm") {
         std::string matched_string = "abbbc";
         REx::BYTE program[] = {0x01, 'a', 0x02, 0x00, 0x05, 0x00, 0x0a, 0x01, 'b', 0x03, 0x80, 0x07, 0x01, 'c', 0x00};
+        int16_t line_num = 5;
+        memcpy(program + 3, &line_num, 2);
+        line_num = 10;
+        memcpy(program + 5, &line_num, 2);
+        line_num = -7;
+        memcpy(program + 10, &line_num, 2);
         REx::vm vm = REx::vm(matched_string, program);
         vm.start_vm();
 

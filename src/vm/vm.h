@@ -52,7 +52,7 @@ namespace REx{
         void ins_loopch(Thread *thread);
         void ins_oneof(Thread *thread);
 
-        int get_PC(int pc) const;
+        int16_t bit16_to_int16(int pc) const;
         const BYTE *program;
         const std::string &matched_data;
         std::queue<Thread *> running_thread_list;
