@@ -4,7 +4,6 @@
 
 #include "catch.hpp"
 #include <climits>
-#include <iostream>
 #include "../src/lexer/parser.h"
 
 TEST_CASE("chars() method should build correct AST by given regular expression") {
