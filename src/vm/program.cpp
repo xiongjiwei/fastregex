@@ -168,22 +168,19 @@ void REx::Program::marshal_star(int16_t pos, Pro_Tree *pro_tree) {
 }
 
 /*
- * ---------------------------------------------------------
- * |L0                                 |L1          |L2    |
- * |·············| split |  L1  |  L2  | jmp |  L0  |······|
- * ---------------------------------------------------------
- * |      n      |   1   |   2  |   2  |  1  |   2  |······|
- * ---------------------------------------------------------
+ * --------------------------------------------
+ * |L0                                 |L1    |
+ * |·············| split |  L0  |  L1  |······|
+ * --------------------------------------------
+ * |      n      |   1   |   2  |   2  |······|
+ * --------------------------------------------
  */
 void REx::Program::marshal_plus(int16_t pos, Pro_Tree *pro_tree) {
     marshal_program(pos, pro_tree->child);
 
     marshal_instruction(pos + pro_tree->child->length, INSTRUCTIONS::split);
-    marshal_int16(pos + pro_tree->child->length + 1, 1 + 2 + 2);
-    marshal_int16(pos + pro_tree->child->length + 1 + 2, 1 + 2 + 2 + 1 + 2);
-
-    marshal_instruction(pos + pro_tree->child->length + 1 + 2 + 2, INSTRUCTIONS::jmp);
-    marshal_int16(pos + pro_tree->child->length + 1 + 2 + 2 + 1, -(pro_tree->child->length + 1 + 2 + 2));
+    marshal_int16(pos + pro_tree->child->length + 1, -pro_tree->child->length);
+    marshal_int16(pos + pro_tree->child->length + 1 + 2, 1 + 2 + 2);
 }
 
 
