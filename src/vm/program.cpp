@@ -129,12 +129,12 @@ bool REx::Program::marshal_program(int16_t pos, REx::Pro_Tree *pro_tree) {
 }
 
 /*
- * -----------------------------------------------
- * |L0                   |L1         |L2         |
- * | split |  L1  |  L2  |···········|···········|
- * -----------------------------------------------
- * |   1   |   2  |   2  |     n     |     n     |
- * -----------------------------------------------
+ * ------------------------------------------------------------------------
+ * |L0                   |L1         |            |L2         |L3         |
+ * | split |  L1  |  L2  |···········| jmp |  L3  |···········|···········|
+ * ------------------------------------------------------------------------
+ * |   1   |   2  |   2  |     n     |  1  |   2  |     n     |···········|
+ * ------------------------------------------------------------------------
  * */
 void REx::Program::marshal_or(int16_t pos, Pro_Tree *pro_tree) {
     marshal_instruction(pos, INSTRUCTIONS::split);
@@ -142,6 +142,10 @@ void REx::Program::marshal_or(int16_t pos, Pro_Tree *pro_tree) {
     marshal_int16(pos + 1 + 2, 1 + 2 + 2 + pro_tree->left->length);
 
     marshal_program(pos + 1 + 2 + 2, pro_tree->left);
+
+    marshal_instruction(pos + 1 + 2 + 2 + pro_tree->left->length, INSTRUCTIONS::jmp);
+    marshal_int16(pos + 1 + 2 + 2 + pro_tree->left->length + 1, 1 + 2 + pro_tree->right->length);
+
     marshal_program(pos + 1 + 2 + 2 + pro_tree->left->length, pro_tree->right);
 }
 
