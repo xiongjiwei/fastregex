@@ -9,13 +9,14 @@ REx::BYTE *REx::Program::to_program(AST *ast) {
     auto pro_tree = compile_to_program_tree(ast);
     init_program(pro_tree);
     if (marshal_program(0, pro_tree)) {
+        program[pro_tree->length] = 0x00;
         return program;
     }
     return nullptr;
 }
 
 void REx::Program::init_program(const Pro_Tree *pro_tree) {
-    this->program = new BYTE[pro_tree->length];
+    this->program = new BYTE[pro_tree->length + 1];
 }
 
 REx::Pro_Tree *REx::Program::compile_charset(AST *ast) {
