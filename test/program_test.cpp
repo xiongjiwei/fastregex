@@ -83,11 +83,71 @@ TEST_CASE("translate to program tree") {
 
         auto ret = REx::Program::compile_to_program_tree(parser.exper());
 
-        CHECK(ret->length == 20);
+        CHECK(ret->length == 17);
         CHECK(ret->type == REx::AST::AND);
-        CHECK(ret->left->length == 10);
+        CHECK(ret->left->length == 7);
         CHECK(ret->left->type == REx::AST::PLUS);
         CHECK(ret->right->length == 10);
         CHECK(ret->right->type == REx::AST::STAR);
+    }
+}
+
+TEST_CASE("bytecode test") {
+    SECTION("") {
+        std::string string = "[a-z]*(abc)+(a|bc)?";
+        REx::REstring restring(string);
+        REx::Parser parser(restring);
+
+        REx::AST *ast = parser.exper();
+        auto bytecode = (new REx::Program())->to_bytecode(ast);
+        REx::BYTE valid_bytecode[] = {
+                0x02, 0x00, 0x00, 0x00, 0x00,       //split L1, L2
+                0x04,                               //oneof
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x03, 0x00, 0x00,                   //jmp L1
+                0x01, 'a',                          //code a
+                0x01, 'b',                          //code b
+                0x01, 'c',                          //code c
+                0x02, 0x00, 0x00, 0x00, 0x00,       //split L1, L2
+                0x02, 0x00, 0x00, 0x00, 0x00,       //split L1, L2
+                0x02, 0x00, 0x00, 0x00, 0x00,       //split L1, L2
+                0x01, 'a',                          //code a
+                0x03, 0x00, 0x00,                   //jmp L1
+                0x01, 'b',                          //code b
+                0x01, 'c',                          //code c
+                0x00                                //match
+        };
+        int16_t line = 5;
+        memcpy(valid_bytecode + 1, &line, 2);
+        line = 41;
+        memcpy(valid_bytecode + 3, &line, 2);
+        line = -38;
+        memcpy(valid_bytecode + 39, &line, 2);
+        line = -6;
+        memcpy(valid_bytecode + 48, &line, 2);
+        line = 5;
+        memcpy(valid_bytecode + 50, &line, 2);
+
+        line = 5;
+        memcpy(valid_bytecode + 53, &line, 2);
+        line = 19;
+        memcpy(valid_bytecode + 55, &line, 2);
+        line = 5;
+        memcpy(valid_bytecode + 58, &line, 2);
+        line = 10;
+        memcpy(valid_bytecode + 60, &line, 2);
+        line = 7;
+        memcpy(valid_bytecode + 65, &line, 2);
+
+        std::bitset<256> atoz;
+        for (int i = 'a'; i <= 'z'; ++i) {
+            atoz[i] = true;
+        }
+
+        memcpy(valid_bytecode + 6, REx::cast_to_byte(atoz), 32);
+        CHECK(memcmp(valid_bytecode, bytecode, 72) == 0);
     }
 }
