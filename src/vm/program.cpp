@@ -5,14 +5,15 @@
 #include <cstring>
 #include "program.h"
 
-REx::BYTE *REx::Program::to_program(AST *ast) {
+REx::BYTE *REx::Program::to_bytecode(AST *ast) {
     auto pro_tree = compile_to_program_tree(ast);
+    delete ast;
     init_program(pro_tree);
-    if (marshal_program(0, pro_tree)) {
-        program[pro_tree->length] = 0x00;
-        return program;
-    }
-    return nullptr;
+    marshal_program(0, pro_tree);
+    program[pro_tree->length] = 0x00;
+
+    delete pro_tree;
+    return program;
 }
 
 void REx::Program::init_program(const Pro_Tree *pro_tree) {
@@ -90,9 +91,9 @@ void REx::Program::marshal_content(int16_t pos, REx::BYTE *bytecode, int16_t len
 
 int REx::Program::get_padding_byte_length(REx::AST::NODETYPE type) {
     int table[] = {
-            5,      //or
+            8,      //or
             8,      //star
-            8,      //plus
+            5,      //plus
             5,      //option
             0,      //and
             0,      //repeat
@@ -102,7 +103,7 @@ int REx::Program::get_padding_byte_length(REx::AST::NODETYPE type) {
 }
 
 
-bool REx::Program::marshal_program(int16_t pos, REx::Pro_Tree *pro_tree) {
+void REx::Program::marshal_program(int16_t pos, REx::Pro_Tree *pro_tree) {
     switch (pro_tree->type) {
         case AST::OR:
             marshal_or(pos, pro_tree);
@@ -126,7 +127,6 @@ bool REx::Program::marshal_program(int16_t pos, REx::Pro_Tree *pro_tree) {
             marshal_charset(pos, pro_tree);
             break;
     }
-    return true;
 }
 
 /*
@@ -140,14 +140,14 @@ bool REx::Program::marshal_program(int16_t pos, REx::Pro_Tree *pro_tree) {
 void REx::Program::marshal_or(int16_t pos, Pro_Tree *pro_tree) {
     marshal_instruction(pos, INSTRUCTIONS::split);
     marshal_int16(pos + 1, 1 + 2 + 2);
-    marshal_int16(pos + 1 + 2, 1 + 2 + 2 + pro_tree->left->length);
+    marshal_int16(pos + 1 + 2, 1 + 2 + 2 + pro_tree->left->length + 1 + 2);
 
     marshal_program(pos + 1 + 2 + 2, pro_tree->left);
 
     marshal_instruction(pos + 1 + 2 + 2 + pro_tree->left->length, INSTRUCTIONS::jmp);
     marshal_int16(pos + 1 + 2 + 2 + pro_tree->left->length + 1, 1 + 2 + pro_tree->right->length);
 
-    marshal_program(pos + 1 + 2 + 2 + pro_tree->left->length, pro_tree->right);
+    marshal_program(pos + 1 + 2 + 2 + pro_tree->left->length + 1 + 2, pro_tree->right);
 }
 
 /*
