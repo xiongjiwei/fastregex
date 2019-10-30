@@ -13,11 +13,6 @@ namespace REx {
 
     class Pro_Tree {
     public:
-        AST::NODETYPE type;
-        Pro_Tree *left = nullptr;
-        Pro_Tree *&child = left;
-        Pro_Tree *right = nullptr;
-
         Pro_Tree(AST::NODETYPE type) {
             this->type = type;
         };
@@ -52,16 +47,20 @@ namespace REx {
         friend class Program;
     private:
         size_t length;
-        BYTE *bytecode;
+        BYTE *bytecode = nullptr;
+        AST::NODETYPE type;
+        Pro_Tree *left = nullptr;
+        Pro_Tree *&child = left;
+        Pro_Tree *right = nullptr;
     };
 
     class Program {
     public:
-        BYTE *to_program(AST *ast);
+        BYTE *to_bytecode(AST *ast);
     private:
         static Pro_Tree * compile_charset(AST *ast);
         static Pro_Tree * compile_to_program_tree(AST *ast);
-        bool marshal_program(int16_t pos, REx::Pro_Tree *pro_tree);
+        void marshal_program(int16_t pos, REx::Pro_Tree *pro_tree);
         void marshal_or(int16_t pos, Pro_Tree *pro_tree);
         void marshal_star(int16_t pos, Pro_Tree *pro_tree);
         void marshal_plus(int16_t pos, Pro_Tree *pro_tree);
