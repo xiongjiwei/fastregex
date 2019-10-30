@@ -7,11 +7,18 @@
 
 
 #include <string>
+#include "../vm/program.h"
 
-class fastre {
-public:
-    void compile(const std::string&);
-};
+namespace REx {
+    class Fastre {
+    public:
+        void compile(const std::string&);
+        void release();
+        bool full_match(const std::string&);
+    private:
+        BYTE *bytecode = nullptr;
+    };
+}
 
 
 #endif //FASTREGEXCPP_FASTRE_H
