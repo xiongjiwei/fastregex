@@ -29,11 +29,12 @@ namespace REx{
         size_t end;
     } Matched_range;
 
-    class vm {
+    class Vm {
     public:
-        vm(const std::string &matched_data_, const BYTE *program_): matched_data(matched_data_), program(program_) {}
+        Vm(const std::string &matched_data_, const BYTE *program_): matched_data(matched_data_), program(program_) {}
 
         void start_vm();
+        std::vector<Matched_range> get_matched_result();
     private:
         int do_match(int sp);
 
@@ -56,7 +57,7 @@ namespace REx{
         const BYTE *program;
         const std::string &matched_data;
         std::queue<Thread *> running_thread_list;
-        std::vector<Matched_range> success_thread_list;
+        std::vector<Matched_range> success_recorder;
 
         std::bitset<8> error_code;
     };

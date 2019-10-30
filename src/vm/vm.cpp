@@ -5,19 +5,19 @@
 #include <cstring>
 #include "vm.h"
 
-void REx::vm::start_vm() {
+void REx::Vm::start_vm() {
     for (size_t i = 0; i < matched_data.length();) {
         i = do_match(i);
     }
 }
 
-int REx::vm::do_match(int sp) {
+int REx::Vm::do_match(int sp) {
     append_thread(new Thread(0, sp, sp));
     while (!running_thread_list.empty()) {
         if (run_thread(running_thread_list.front())) {
             destroy_queue();
 
-            return success_thread_list.back().end;
+            return success_recorder.back().end;
         }
         delete running_thread_list.front();
         running_thread_list.pop();
@@ -26,7 +26,7 @@ int REx::vm::do_match(int sp) {
     return sp + 1;
 }
 
-bool REx::vm::run_thread(REx::Thread *thread) {
+bool REx::Vm::run_thread(REx::Thread *thread) {
     while (thread->alive) {
         switch (program[thread->PC]) {
             case character:
@@ -53,7 +53,7 @@ bool REx::vm::run_thread(REx::Thread *thread) {
     return false;
 }
 
-void REx::vm::ins_character(REx::Thread *thread) {
+void REx::Vm::ins_character(REx::Thread *thread) {
     if (thread->SP < matched_data.length() && program[thread->PC + 1] == matched_data[thread->SP]) {
         thread->SP += 1;
         thread->PC += 2;
@@ -62,21 +62,21 @@ void REx::vm::ins_character(REx::Thread *thread) {
     }
 }
 
-void REx::vm::ins_split(REx::Thread *thread) {
+void REx::Vm::ins_split(REx::Thread *thread) {
     append_thread(new Thread(thread->PC + bit16_to_int16(thread->PC + 3), thread->SP, thread->sp_start_point));
     thread->PC = bit16_to_int16(thread->PC + 1) + thread->PC;
 }
 
-void REx::vm::ins_jmp(REx::Thread *thread) {
+void REx::Vm::ins_jmp(REx::Thread *thread) {
     thread->PC = bit16_to_int16(thread->PC + 1) + thread->PC;
 }
 
-void REx::vm::ins_match(REx::Thread *thread) {
+void REx::Vm::ins_match(REx::Thread *thread) {
     record_success(thread->sp_start_point, thread->SP);
     terminal_thread(thread);
 }
 
-void REx::vm::ins_loopch(REx::Thread *thread) {
+void REx::Vm::ins_loopch(REx::Thread *thread) {
     int times = program[thread->PC + 2] * 256 + program[thread->PC + 3];
 
     while (times != 0) {
@@ -92,7 +92,7 @@ void REx::vm::ins_loopch(REx::Thread *thread) {
     thread->PC += 4;
 }
 
-void REx::vm::ins_oneof(REx::Thread *thread) {
+void REx::Vm::ins_oneof(REx::Thread *thread) {
     int index = matched_data[thread->SP] / 8;       //index of set<32>
     int bit_index = matched_data[thread->SP] % 8;   //index of bit in BYTE
 
@@ -107,30 +107,34 @@ void REx::vm::ins_oneof(REx::Thread *thread) {
     }
 }
 
-void REx::vm::append_thread(REx::Thread *thread) {
+void REx::Vm::append_thread(REx::Thread *thread) {
     running_thread_list.push(thread);
 }
 
-void REx::vm::terminal_thread(REx::Thread *thread) {
+void REx::Vm::terminal_thread(REx::Thread *thread) {
     thread->alive = false;
 }
 
-void REx::vm::record_success(size_t start, size_t end) {
+void REx::Vm::record_success(size_t start, size_t end) {
     Matched_range matchedRange;
     matchedRange.start = start;
     matchedRange.end = end;
-    success_thread_list.push_back(matchedRange);
+    success_recorder.push_back(matchedRange);
 }
 
-void REx::vm::destroy_queue() {
+void REx::Vm::destroy_queue() {
     while (!running_thread_list.empty()) {
         delete running_thread_list.front();
         running_thread_list.pop();
     }
 }
 
-int16_t REx::vm::bit16_to_int16(int pc) const {
+int16_t REx::Vm::bit16_to_int16(int pc) const {
     int16_t t = 0;
     memcpy(&t, program + pc, 2);
     return t;
+}
+
+std::vector<REx::Matched_range> REx::Vm::get_matched_result() {
+    return success_recorder;
 }

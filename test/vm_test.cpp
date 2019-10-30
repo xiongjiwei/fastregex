@@ -6,13 +6,15 @@
 #include "catch.hpp"
 #define private public
 #include "../src/vm/vm.h"
+#include "../src/lexer/parser.h"
+#include "../src/re/fastre.h"
 
 TEST_CASE("vm instructions test") {
     SECTION("character instructions") {
         WHEN("matched") {
             std::string matched_string = "a";
             REx::BYTE program[] = {0x01, 'a', 0x00};
-            REx::vm vm = REx::vm(matched_string, program);
+            REx::Vm vm = REx::Vm(matched_string, program);
             auto *thread = new REx::Thread(0, 0, 0);
             vm.ins_character(thread);
 
@@ -24,7 +26,7 @@ TEST_CASE("vm instructions test") {
         WHEN("not matched") {
             std::string matched_string = "a";
             REx::BYTE program[] = {0x01, 'b', 0x00};
-            REx::vm vm = REx::vm(matched_string, program);
+            REx::Vm vm = REx::Vm(matched_string, program);
             auto *thread = new REx::Thread(0, 0, 0);
             vm.ins_character(thread);
 
@@ -39,7 +41,7 @@ TEST_CASE("vm instructions test") {
         memcpy(program + 1, &line_num, 2);
         line_num = 6;
         memcpy(program + 3, &line_num, 2);
-        REx::vm vm = REx::vm(matched_string, program);
+        REx::Vm vm = REx::Vm(matched_string, program);
         auto *first_thread = new REx::Thread(0, 0, 0);
         vm.ins_split(first_thread);
         auto second_thread = vm.running_thread_list.front();
@@ -53,7 +55,7 @@ TEST_CASE("vm instructions test") {
         REx::BYTE program[] = {0x03, 0x00, 0x03, 0x00, 0x06};
         int16_t line_num = 3;
         memcpy(program + 1, &line_num, 2);
-        REx::vm vm = REx::vm(matched_string, program);
+        REx::Vm vm = REx::Vm(matched_string, program);
         auto *thread = new REx::Thread(0, 0, 0);
         vm.ins_jmp(thread);
 
@@ -63,21 +65,21 @@ TEST_CASE("vm instructions test") {
     SECTION("match instructions") {
         std::string matched_string = "aaaaa";
         REx::BYTE program[] = {0x00};
-        REx::vm vm = REx::vm(matched_string, program);
+        REx::Vm vm = REx::Vm(matched_string, program);
         auto *thread = new REx::Thread(0, 3, 0);
         vm.ins_match(thread);
 
         CHECK_FALSE(thread->alive);
-        REQUIRE(vm.success_thread_list.size() == 1);
-        CHECK(vm.success_thread_list.at(0).start == 0);
-        CHECK(vm.success_thread_list.at(0).end == 3);
+        REQUIRE(vm.success_recorder.size() == 1);
+        CHECK(vm.success_recorder.at(0).start == 0);
+        CHECK(vm.success_recorder.at(0).end == 3);
     }
 
     SECTION("loopch instructions") {
         WHEN("matched") {
             std::string matched_string = "aaaaabbb";
             REx::BYTE program[] = {0x05, 'a', 0x00, 0x03};
-            REx::vm vm = REx::vm(matched_string, program);
+            REx::Vm vm = REx::Vm(matched_string, program);
             auto *thread = new REx::Thread(0, 0, 0);
             vm.ins_loopch(thread);
 
@@ -91,7 +93,7 @@ TEST_CASE("vm instructions test") {
             REx::BYTE program[] = {0x05, 'a', 0x00, 0x07};
             int16_t times = 7;
             memcpy(program + 2, &times, 2);
-            REx::vm vm = REx::vm(matched_string, program);
+            REx::Vm vm = REx::Vm(matched_string, program);
             auto *thread = new REx::Thread(0, 0, 0);
             vm.ins_loopch(thread);
 
@@ -109,7 +111,7 @@ TEST_CASE("vm instructions test") {
                                    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
                                    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
             };
-            REx::vm vm = REx::vm(matched_string, program);
+            REx::Vm vm = REx::Vm(matched_string, program);
             auto *thread = new REx::Thread(0, 0, 0);
             vm.ins_oneof(thread);
 
@@ -126,7 +128,7 @@ TEST_CASE("vm instructions test") {
                                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             };
-            REx::vm vm = REx::vm(matched_string, program);
+            REx::Vm vm = REx::Vm(matched_string, program);
             auto *thread = new REx::Thread(0, 0, 0);
             vm.ins_oneof(thread);
 
@@ -142,7 +144,7 @@ TEST_CASE("vm instructions test") {
             REx::BYTE program[33] = {0x06};
             memcpy(program + 1,  bytes, 32);
             delete bytes;
-            REx::vm vm = REx::vm(matched_string, program);
+            REx::Vm vm = REx::Vm(matched_string, program);
             auto *thread = new REx::Thread(0, 0, 0);
             vm.ins_oneof(thread);
 
@@ -160,7 +162,7 @@ TEST_CASE("vm instructions test") {
             REx::BYTE program[33] = {0x06};
             memcpy(program + 1,  bytes, 32);
             delete bytes;
-            REx::vm vm = REx::vm(matched_string, program);
+            REx::Vm vm = REx::Vm(matched_string, program);
             auto *thread = new REx::Thread(0, 0, 0);
             vm.ins_oneof(thread);
 
@@ -177,12 +179,23 @@ TEST_CASE("vm instructions test") {
         memcpy(program + 5, &line_num, 2);
         line_num = -7;
         memcpy(program + 10, &line_num, 2);
-        REx::vm vm = REx::vm(matched_string, program);
+        REx::Vm vm = REx::Vm(matched_string, program);
         vm.start_vm();
 
-        REQUIRE(vm.success_thread_list.size() == 1);
-        CHECK(vm.success_thread_list.at(0).start == 0);
-        CHECK(vm.success_thread_list.at(0).end == 5);
+        REQUIRE(vm.success_recorder.size() == 1);
+        CHECK(vm.success_recorder.at(0).start == 0);
+        CHECK(vm.success_recorder.at(0).end == 5);
         CHECK(vm.running_thread_list.empty());
+    }
+}
+
+TEST_CASE("match test") {
+    SECTION("") {
+        std::string string = "[a-z]*(abc)+(a|bc)?";
+        REx::Fastre fastre;
+        fastre.compile(string);
+
+        CHECK(fastre.full_match("abcdabcabcbc"));
+        CHECK_FALSE(fastre.full_match("A"));
     }
 }
