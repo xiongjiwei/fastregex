@@ -58,7 +58,6 @@ namespace REx{
         int16_t bit16_to_int16(int pc) const;
         const BYTE *program;
         const std::string &matched_data;
-//        std::queue<Thread *> running_thread_list;
         std::stack<Thread *> running_thread_list;
         std::vector<Matched_range> success_recorder;
 

@@ -23,7 +23,3 @@ bool REx::Fastre::full_match(const std::string &string) {
     return !vm.get_matched_result().empty() &&
            (vm.get_matched_result()[0].start == 0 && vm.get_matched_result()[0].end == string.size());
 }
-
-void REx::Fastre::release() {
-    delete [] bytecode;
-}

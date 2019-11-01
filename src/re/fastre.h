@@ -13,8 +13,11 @@ namespace REx {
     class Fastre {
     public:
         void compile(const std::string&);
-        void release();
         bool full_match(const std::string&);
+
+        ~Fastre() {
+            delete [] bytecode;
+        }
     private:
         BYTE *bytecode = nullptr;
     };
