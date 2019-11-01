@@ -20,7 +20,8 @@ bool REx::Fastre::full_match(const std::string &string) {
     }
     REx::Vm vm = REx::Vm(string, bytecode);
     vm.start_vm();
-    return !vm.get_matched_result().empty() || (vm.get_matched_result()[0].start == 0 && vm.get_matched_result()[0].end == string.size()) ;
+    return !vm.get_matched_result().empty() &&
+           (vm.get_matched_result()[0].start == 0 && vm.get_matched_result()[0].end == string.size());
 }
 
 void REx::Fastre::release() {

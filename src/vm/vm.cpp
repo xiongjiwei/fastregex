@@ -40,8 +40,10 @@ bool REx::Vm::run_thread(REx::Thread *thread) {
                 break;
             case loopch:
                 ins_loopch(thread);
+                break;
             case oneof:
                 ins_oneof(thread);
+                break;
             case match:
                 ins_match(thread);
                 return true;
