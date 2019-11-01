@@ -9,6 +9,7 @@
 #include <string>
 #include <queue>
 #include <bitset>
+#include <stack>
 #include "../re/rex.h"
 
 namespace REx{
@@ -42,7 +43,8 @@ namespace REx{
         void append_thread(Thread *thread);
         void terminal_thread(Thread *thread);
 
-        void destroy_queue();
+        void destroy_running_thread_list();
+        Thread *get_next_thread();
 
         void record_success(size_t start, size_t end);
 
@@ -56,7 +58,8 @@ namespace REx{
         int16_t bit16_to_int16(int pc) const;
         const BYTE *program;
         const std::string &matched_data;
-        std::queue<Thread *> running_thread_list;
+//        std::queue<Thread *> running_thread_list;
+        std::stack<Thread *> running_thread_list;
         std::vector<Matched_range> success_recorder;
 
         std::bitset<8> error_code;

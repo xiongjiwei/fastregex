@@ -14,13 +14,13 @@ void REx::Vm::start_vm() {
 int REx::Vm::do_match(int sp) {
     append_thread(new Thread(0, sp, sp));
     while (!running_thread_list.empty()) {
-        if (run_thread(running_thread_list.front())) {
-            destroy_queue();
+        Thread *next_thread = get_next_thread();
+        if (run_thread(next_thread)) {
+            destroy_running_thread_list();
 
             return success_recorder.back().end;
         }
-        delete running_thread_list.front();
-        running_thread_list.pop();
+        delete next_thread;
     }
 
     return sp + 1;
@@ -124,9 +124,9 @@ void REx::Vm::record_success(size_t start, size_t end) {
     success_recorder.push_back(matchedRange);
 }
 
-void REx::Vm::destroy_queue() {
+void REx::Vm::destroy_running_thread_list() {
     while (!running_thread_list.empty()) {
-        delete running_thread_list.front();
+        delete running_thread_list.top();
         running_thread_list.pop();
     }
 }
@@ -139,4 +139,10 @@ int16_t REx::Vm::bit16_to_int16(int pc) const {
 
 std::vector<REx::Matched_range> REx::Vm::get_matched_result() {
     return success_recorder;
+}
+
+REx::Thread *REx::Vm::get_next_thread() {
+    Thread *&pThread = running_thread_list.top();
+    running_thread_list.pop();
+    return pThread;
 }
