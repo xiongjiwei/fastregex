@@ -44,7 +44,7 @@ TEST_CASE("vm instructions test") {
         REx::Vm vm = REx::Vm(matched_string, program);
         auto *first_thread = new REx::Thread(0, 0, 0);
         vm.ins_split(first_thread);
-        auto second_thread = vm.running_thread_list.front();
+        auto second_thread = vm.get_next_thread();
 
         CHECK(first_thread->PC == 0x03);
         CHECK(second_thread->PC == 0x06);
