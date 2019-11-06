@@ -171,13 +171,13 @@ REx::AST *REx::Parser::charset() {
             is_negative = true;
             restring.remove_prefix();
         }
-        std::vector<char> stake; // use -2 instead operator '-'
+        std::vector<char> stake; // use -1 indicate charset like \d\w\s. use -2 indicate operator '-'
 
         while (restring.size() >= 1) {
             if (restring[0] == ']') {
                 restring.remove_prefix();
-                for (int i = 0; i < int(stake.size()); ++i) {
-                    if (stake.size() - i >= 3 && stake[i + 1] == -2) {  //we have a '-' in mid
+                for (size_t i = 0; i < stake.size(); ++i) {
+                    if (stake.size() - i >= 3 && stake[i] != -1 && stake[i + 1] == -2 && stake[i + 2] != -1) {  //we have a '-' in mid
                         if (stake[i] <= stake[i + 2]) {// left char point should no-greater than right char point
                             for (int j = stake[i]; j <= stake[i + 2]; ++j) {
                                 root->add_character(char(j));
@@ -189,8 +189,10 @@ REx::AST *REx::Parser::charset() {
                             return nullptr;
                         }
                     } else { //we do not have a '-' in mid
-                        root->add_character(
-                                stake[i] == -2 ? '-' : stake[i]); //if stake[i] == -2, it means this is a '-' character
+                        if (stake[i] != -1) { // this char is not \d\w\s..
+                            root->add_character(
+                                    stake[i] == -2 ? '-' : stake[i]); //if stake[i] == -2, it means this is a '-' character
+                        }
                     }
                 }
 
@@ -200,15 +202,22 @@ REx::AST *REx::Parser::charset() {
                 return root;
             }
             if (restring[0] == '\\') {
-                int s = process_escape();
-                if (s == -1) { // bad escape char
+                auto code_set = process_escape();
+                if (code_set == nullptr) { // bad escape char
                     delete root;
                     set_error_code(bad_escape);
                     return nullptr;
                 }
-                stake.push_back(char(s));
+                if (code_set->size() == 1) {
+                    stake.push_back((char) *code_set->begin());
+                } else {
+                    stake.push_back(-1);    //-1 indicate charset like \d\w\s
+                    for (char code : *code_set) {
+                        root->add_character((char) code);
+                    }
+                }
             } else if (restring[0] == '-') {
-                stake.push_back(-2); // use -2 instead operator '-'
+                stake.push_back(-2); //-2 indicate operator '-'
                 restring.remove_prefix();
             } else {
                 stake.push_back(restring[0]);
@@ -227,9 +236,12 @@ REx::AST *REx::Parser::chars() {
     if (restring.size() > 0 && UNHANDLED_CHAR.find(restring[0]) == UNHANDLED_CHAR.end()) {
         root = new AST(AST::NODETYPE::CHARSET);
         if (restring[0] == '\\') {
-            int char_code = process_escape();
-            if (char_code != -1) {
-                root->add_character((char) char_code);
+            auto code_set = process_escape();
+            if (code_set != nullptr) {
+                for (char code : *code_set) {
+                    root->add_character((char) code);
+                }
+                delete code_set;
             } else {
                 delete root;
                 set_error_code(bad_escape);
@@ -270,11 +282,13 @@ REx::AST *REx::Parser::collapse_binary_operator(AST *left, AST *right, AST::NODE
     return root;
 }
 
-/// \return the escape character code point, -1 means wrong
-int REx::Parser::process_escape() {
+/// the escape character code point
+std::unordered_set<char> * REx::Parser::process_escape() {
     restring.remove_prefix(); // remove \
 
+    std::unordered_set<char>* charset = nullptr;
     if (restring.size() > 0) {
+        charset = new std::unordered_set<char>;
         if (restring[0] == 'x') {
             restring.remove_prefix();
             if (restring.size() > 0 && is_HEX_digital(restring[0])) {
@@ -284,9 +298,11 @@ int REx::Parser::process_escape() {
                     code = code * 16 + UnHex(restring[0]); //second hex number
                     restring.remove_prefix();
                 }
-                return code;
+                charset->insert(code);
+                return charset;
             } else {
-                return 0; // \x match code point 0
+                charset->insert(0);
+                return charset; // \x match code point 0
             }
         } else {
             if (is_OTC_digital(restring[0])) {
@@ -295,14 +311,15 @@ int REx::Parser::process_escape() {
                     code = code * 8 + restring[0] - '0';
                     restring.remove_prefix();
                 }
-                return code;
+                charset->insert(code);
+                return charset;
             } else {
-                char t = restring[0];
+                charset->insert(restring[0]);
                 restring.remove_prefix();
-                return t;
+                return charset;
             }
         }
     } else {
-        return -1;
+        return charset;
     }
 }
