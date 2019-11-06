@@ -527,6 +527,21 @@ TEST_CASE("exper() method should build correct AST by given regular expression")
             }
         }
 
+        WHEN("with \\d") {
+            string = "\\d*";
+            auto test_ret = parser.exper();
+
+            THEN("") {
+                REx::AST *correct_ast = new REx::AST(REx::AST::STAR);
+                correct_ast->child = new REx::AST(REx::AST::CHARSET);
+                for (char i = '0'; i <= '9'; ++i) {
+                    correct_ast->child->add_character(i);
+                }
+                CHECK((*test_ret == *correct_ast));
+                CHECK(restring.size() == 0);
+            }
+        }
+
         WHEN("nested parenthesis") {
             string = "((ab)(a|b)*)*";
             auto test_ret = parser.exper();

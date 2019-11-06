@@ -177,7 +177,8 @@ REx::AST *REx::Parser::charset() {
             if (restring[0] == ']') {
                 restring.remove_prefix();
                 for (size_t i = 0; i < stake.size(); ++i) {
-                    if (stake.size() - i >= 3 && stake[i] != -1 && stake[i + 1] == -2 && stake[i + 2] != -1) {  //we have a '-' in mid
+                    if (stake.size() - i >= 3 && stake[i] != -1 && stake[i + 1] == -2 &&
+                        stake[i + 2] != -1) {  //we have a '-' in mid
                         if (stake[i] <= stake[i + 2]) {// left char point should no-greater than right char point
                             for (int j = stake[i]; j <= stake[i + 2]; ++j) {
                                 root->add_character(char(j));
@@ -191,7 +192,8 @@ REx::AST *REx::Parser::charset() {
                     } else { //we do not have a '-' in mid
                         if (stake[i] != -1) { // this char is not \d\w\s..
                             root->add_character(
-                                    stake[i] == -2 ? '-' : stake[i]); //if stake[i] == -2, it means this is a '-' character
+                                    stake[i] == -2 ? '-'
+                                                   : stake[i]); //if stake[i] == -2, it means this is a '-' character
                         }
                     }
                 }
@@ -215,6 +217,7 @@ REx::AST *REx::Parser::charset() {
                     for (char code : *code_set) {
                         root->add_character((char) code);
                     }
+                    delete code_set;
                 }
             } else if (restring[0] == '-') {
                 stake.push_back(-2); //-2 indicate operator '-'
@@ -283,13 +286,35 @@ REx::AST *REx::Parser::collapse_binary_operator(AST *left, AST *right, AST::NODE
 }
 
 /// the escape character code point
-std::unordered_set<char> * REx::Parser::process_escape() {
+std::unordered_set<char> *REx::Parser::process_escape() {
     restring.remove_prefix(); // remove \
 
-    std::unordered_set<char>* charset = nullptr;
+    std::unordered_set<char> *charset = nullptr;
     if (restring.size() > 0) {
         charset = new std::unordered_set<char>;
-        if (restring[0] == 'x') {
+        if (restring[0] == 'd' || restring[0] == 'D') {
+            for (int i = 0; i < 255; ++i) {
+                if (('0' <= i && i <= '9') == (restring[0] == 'd')) {
+                    charset->insert(i);
+                }
+            }
+            restring.remove_prefix();
+        } else if (restring[0] == 'w' || restring[0] == 'W') {
+            for (int i = 0; i < 255; ++i) {
+                if ((('a' <= i && i <= 'z') || ('A' <= i && i <= 'Z') || ('0' <= i && i <= '9') || (i == '_')) ==
+                    (restring[0] == 'w')) {
+                    charset->insert(i);
+                }
+            }
+            restring.remove_prefix();
+        } else if (restring[0] == 's' || restring[0] == 'S') {
+            for (int i = 0; i < 255; ++i) {
+                if (((i == ' ') || (i == '\t') || (i == '\n')) == (restring[0] == 's')) {
+                    charset->insert(i);
+                }
+            }
+            restring.remove_prefix();
+        } else if (restring[0] == 'x') {
             restring.remove_prefix();
             if (restring.size() > 0 && is_HEX_digital(restring[0])) {
                 int code = UnHex(restring[0]);  //first hex number
@@ -299,27 +324,21 @@ std::unordered_set<char> * REx::Parser::process_escape() {
                     restring.remove_prefix();
                 }
                 charset->insert(code);
-                return charset;
             } else {
-                charset->insert(0);
-                return charset; // \x match code point 0
+                charset->insert(0);// \x match code point 0
             }
-        } else {
-            if (is_OTC_digital(restring[0])) {
-                int code = 0;
-                while (is_HEX_digital(restring[0]) && code < 256) {
-                    code = code * 8 + restring[0] - '0';
-                    restring.remove_prefix();
-                }
-                charset->insert(code);
-                return charset;
-            } else {
-                charset->insert(restring[0]);
+        } else if (is_OTC_digital(restring[0])) {
+            int code = 0;
+            while (is_HEX_digital(restring[0]) && code < 256) {
+                code = code * 8 + restring[0] - '0';
                 restring.remove_prefix();
-                return charset;
             }
+            charset->insert(code);
+        } else {
+            charset->insert(restring[0]);
+            restring.remove_prefix();
         }
-    } else {
-        return charset;
     }
+
+    return charset;
 }
