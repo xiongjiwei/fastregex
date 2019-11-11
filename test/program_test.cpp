@@ -150,4 +150,34 @@ TEST_CASE("bytecode test") {
         memcpy(valid_bytecode + 6, REx::cast_to_byte(atoz), 32);
         CHECK(memcmp(valid_bytecode, bytecode, 72) == 0);
     }
+
+    SECTION("") {
+        std::string string = "a{1,2}b";
+        REx::REstring restring(string);
+        REx::Parser parser(restring);
+
+        REx::AST *ast = parser.exper();
+        auto bytecode = (new REx::Program())->to_bytecode(ast);
+        REx::BYTE valid_bytecode[] = {
+                0x06, 0x00, 0x01,               //loop 1
+                0x01, 'a',                      //char a
+                0x06, 0x00, 0x01,               //loop 1
+                0x02, 0x00, 0x00, 0x00, 0x00,   //split 4, 9
+                0x01, 'a',                      //char a
+                0x07, 0x00, 0x00,               //endloop -7
+                0x01, 'b',                      //char b
+                0x00                            //match
+        };
+
+        int16_t line = 4;
+        memcpy(valid_bytecode + 9, &line, 2);
+        line = 9;
+        memcpy(valid_bytecode + 11, &line, 2);
+        line = -7;
+        memcpy(valid_bytecode + 16, &line, 2);
+
+        REx::BYTE t[21];
+        memcpy(t, bytecode, 21);
+        CHECK(memcmp(valid_bytecode, bytecode, 21) == 0);
+    }
 }

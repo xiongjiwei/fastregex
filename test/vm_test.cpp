@@ -81,6 +81,9 @@ TEST_CASE("vm instructions test") {
             REx::BYTE program[] = {0x05, 'a', 0x00, 0x03};
             REx::Vm vm = REx::Vm(matched_string, program);
             auto *thread = new REx::Thread(0, 0, 0);
+
+            int16_t line = 3;
+            memcpy(program + 2, &line, 2);
             vm.ins_loopch(thread);
 
             CHECK(thread->alive);
@@ -105,7 +108,7 @@ TEST_CASE("vm instructions test") {
     SECTION("oneof instructions") {
         WHEN("matched") {
             std::string matched_string = "a";
-            REx::BYTE program[] = {0x06,
+            REx::BYTE program[] = {0x04,
                                    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
                                    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
                                    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
@@ -122,7 +125,7 @@ TEST_CASE("vm instructions test") {
 
         WHEN("not matched") {
             std::string matched_string = "a";
-            REx::BYTE program[] = {0x06,
+            REx::BYTE program[] = {0x04,
                                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -170,22 +173,80 @@ TEST_CASE("vm instructions test") {
         }
     }
 
-    SECTION("vm") {
-        std::string matched_string = "abbbc";
-        REx::BYTE program[] = {0x01, 'a', 0x02, 0x00, 0x05, 0x00, 0x0a, 0x01, 'b', 0x03, 0x80, 0x07, 0x01, 'c', 0x00};
-        int16_t line_num = 5;
-        memcpy(program + 3, &line_num, 2);
-        line_num = 10;
-        memcpy(program + 5, &line_num, 2);
-        line_num = -7;
-        memcpy(program + 10, &line_num, 2);
-        REx::Vm vm = REx::Vm(matched_string, program);
-        vm.start_vm();
+    SECTION("loop") {
+        WHEN("match") {
+            std::string matched_string = "a";
+            REx::BYTE program[] = {
+                    0x06, 0x00, 0x00,
+            };
+            int16_t line_num = 5;
+            memcpy(program + 1, &line_num, 2);
+            REx::Vm vm = REx::Vm(matched_string, program);
+            auto *thread = new REx::Thread(0, 0, 0);
+            vm.ins_loop(thread);
 
-        REQUIRE(vm.success_recorder.size() == 1);
-        CHECK(vm.success_recorder.at(0).start == 0);
-        CHECK(vm.success_recorder.at(0).end == 5);
-        CHECK(vm.running_thread_list.empty());
+            CHECK(thread->alive);
+            CHECK(thread->PC == 3);
+            CHECK(vm.loop_times == 5);
+        }
+
+        WHEN("endloop") {
+            std::string matched_string = "a";
+            REx::BYTE program[] = {
+                    0x07, 0x00, 0x00,
+            };
+            int16_t line_num = -2;
+            memcpy(program + 1, &line_num, 2);
+            REx::Vm vm = REx::Vm(matched_string, program);
+            auto *thread = new REx::Thread(0, 0, 0);
+            vm.loop_times = 5;
+            vm.ins_endloop(thread);
+
+            CHECK(thread->alive);
+            CHECK(thread->PC == -2);
+            CHECK(vm.loop_times == 4);
+        }
+    }
+
+    SECTION("vm") {
+        WHEN("") {
+            std::string matched_string = "abbbc";
+            REx::BYTE program[] = {0x01, 'a', 0x02, 0x00, 0x05, 0x00, 0x0a, 0x01, 'b', 0x03, 0x80, 0x07, 0x01, 'c', 0x00};
+            int16_t line_num = 5;
+            memcpy(program + 3, &line_num, 2);
+            line_num = 10;
+            memcpy(program + 5, &line_num, 2);
+            line_num = -7;
+            memcpy(program + 10, &line_num, 2);
+            REx::Vm vm = REx::Vm(matched_string, program);
+            vm.start_vm();
+
+            REQUIRE(vm.success_recorder.size() == 1);
+            CHECK(vm.success_recorder.at(0).start == 0);
+            CHECK(vm.success_recorder.at(0).end == 5);
+            CHECK(vm.running_thread_list.empty());
+        }
+
+        WHEN("") {
+            std::string matched_string = "aaaaa";
+            REx::BYTE program[] = {
+                    0x06, 0x00, 0x00,
+                    0x01, 'a',
+                    0x07, 0x00, 0x00,
+                    0x00
+            };
+            int16_t line_num = 5;
+            memcpy(program + 1, &line_num, 2);
+            line_num = -2;
+            memcpy(program + 6, &line_num, 2);
+            REx::Vm vm = REx::Vm(matched_string, program);
+            vm.start_vm();
+
+            REQUIRE(vm.success_recorder.size() == 1);
+            CHECK(vm.success_recorder.at(0).start == 0);
+            CHECK(vm.success_recorder.at(0).end == 5);
+            CHECK(vm.running_thread_list.empty());
+        }
     }
 }
 
@@ -197,5 +258,14 @@ TEST_CASE("match test") {
 
         CHECK(fastre.full_match("abcdabcabcbc"));
         CHECK_FALSE(fastre.full_match("A"));
+    }
+
+    SECTION("") {
+        std::string string = "\\d*[123]";
+        REx::Fastre fastre;
+        fastre.compile(string);
+
+        CHECK(fastre.full_match("553"));
+        CHECK_FALSE(fastre.full_match("5"));
     }
 }
