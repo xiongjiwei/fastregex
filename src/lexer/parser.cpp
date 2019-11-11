@@ -109,7 +109,7 @@ REx::AST *REx::Parser::maybe_repeat(AST *root) {
         }
 
         if (restring.size() > 0 && restring[0] == '}') {
-            if (low > high) {
+            if (low > high || high == 0) {  //not support e{0,0}
                 set_error_code(bad_quantifier);
                 delete root;
                 return nullptr;
