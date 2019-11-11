@@ -41,6 +41,12 @@ bool REx::Vm::run_thread(REx::Thread *thread) {
             case loopch:
                 ins_loopch(thread);
                 break;
+            case loop:
+                ins_loop(thread);
+                break;
+            case endloop:
+                ins_endloop(thread);
+                break;
             case oneof:
                 ins_oneof(thread);
                 break;
@@ -79,7 +85,8 @@ void REx::Vm::ins_match(REx::Thread *thread) {
 }
 
 void REx::Vm::ins_loopch(REx::Thread *thread) {
-    int times = program[thread->PC + 2] * 256 + program[thread->PC + 3];
+//    int times = program[thread->PC + 2] * 256 + program[thread->PC + 3];
+    int times = bit16_to_int16(thread->PC + 2);
 
     while (times != 0) {
         if (thread->SP < matched_data.length() && program[thread->PC + 1] == matched_data[thread->SP]) {
@@ -92,6 +99,21 @@ void REx::Vm::ins_loopch(REx::Thread *thread) {
     }
 
     thread->PC += 4;
+}
+
+void REx::Vm::ins_loop(REx::Thread *thread) {
+//    loop_times = program[thread->PC + 1] * 256 + program[thread->PC + 2];
+    loop_times = bit16_to_int16(thread->PC + 1);
+    thread->PC += 3;
+}
+
+void REx::Vm::ins_endloop(REx::Thread *thread) {
+    loop_times--;
+    if (loop_times == 0) {
+        thread->PC += 3;
+    } else {
+        thread->PC += bit16_to_int16(thread->PC + 1);
+    }
 }
 
 void REx::Vm::ins_oneof(REx::Thread *thread) {

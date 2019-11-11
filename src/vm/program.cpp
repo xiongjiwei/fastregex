@@ -3,6 +3,7 @@
 //
 
 #include <cstring>
+#include <climits>
 #include "program.h"
 
 REx::BYTE *REx::Program::to_bytecode(AST *ast) {
@@ -64,7 +65,9 @@ REx::Pro_Tree *REx::Program::compile_to_program_tree(REx::AST *ast) {
     root->left = left;
     root->right = right;
 
-    root->length = get_padding_byte_length(ast->type);
+    root->length = get_padding_byte_length(ast);
+    root->low = ast->low;
+    root->high = ast->high;
 
     if (left != nullptr) {
         root->length += left->length;
@@ -89,7 +92,8 @@ void REx::Program::marshal_content(int16_t pos, REx::BYTE *bytecode, int16_t len
     memcpy(program + pos, bytecode, length);
 }
 
-int REx::Program::get_padding_byte_length(REx::AST::NODETYPE type) {
+int REx::Program::get_padding_byte_length(AST *ast) {
+    int padding = 0;
     int table[] = {
             8,      //or
             8,      //star
@@ -99,7 +103,20 @@ int REx::Program::get_padding_byte_length(REx::AST::NODETYPE type) {
             0,      //repeat
             0,      //charset
     };
-    return table[type];
+
+    if (ast->type == AST::REPEAT) {
+        if (ast->low != 0) {
+            padding += 6;
+        }
+
+        if (ast->high == INT_MAX) {
+            padding += 8;
+        } else if (ast->high != ast->low) {
+            padding += 11;
+        }
+    }
+
+    return table[ast->type] + padding;
 }
 
 
@@ -215,11 +232,50 @@ void REx::Program::marshal_and(int16_t pos, Pro_Tree *pro_tree) {
     marshal_program(pos + pro_tree->left->length, pro_tree->right);
 }
 
+
+/*
+ * -----------------------------------------------------------------------------------------------------------
+ * |              |L0                      |L1                              |L2                      |L3     |
+ * | loop | times |·········| endloop | L0 | loop | times | split | L2 | L3 |·········| endloop | L1 | other |
+ * -----------------------------------------------------------------------------------------------------------
+ * |  1   |   2   |    n    |    1    |  2 |   1  |   2   |   1   |  2 |  2 |    n    |    1    |  2 | other |
+ * -----------------------------------------------------------------------------------------------------------
+ */
+void REx::Program::marshal_repeat(int16_t pos, REx::Pro_Tree *pro_tree) {
+    if (pro_tree->low != 0) {
+        marshal_instruction(pos, INSTRUCTIONS::loop);
+        marshal_int16(pos + 1, pro_tree->low);
+
+        marshal_program(pos + 1 + 2, pro_tree->child);
+
+        marshal_instruction(pos + 1 + 2 + pro_tree->child->length, INSTRUCTIONS::endloop);
+        marshal_int16(pos + 1 + 2 + pro_tree->child->length + 1, -(pro_tree->child->length));
+
+        pos += (1 + 2 + pro_tree->child->length + 1 + 2);
+    }
+
+    if (pro_tree->high == INT_MAX) {
+        marshal_instruction(pos, INSTRUCTIONS::split);
+        marshal_int16(pos + 1, 1 + 2 + 2);
+        marshal_int16(pos + 1 + 2, 1 + 2 + 2 + pro_tree->child->length + 1 + 2);
+
+        marshal_program(pos + 1 + 2 + 2, pro_tree->child);
+        marshal_instruction(pos + 1 + 2 + 2 + pro_tree->child->length, INSTRUCTIONS::jmp);
+        marshal_int16(pos + 1 + 2 + 2 + pro_tree->child->length + 1, -(1 + 2 + 2 + pro_tree->child->length));
+    } else if (pro_tree->high != pro_tree->low) {
+        marshal_instruction(pos, INSTRUCTIONS::loop);
+        marshal_int16(pos + 1, pro_tree->high - pro_tree->low);
+        marshal_instruction(pos + 1 + 2, INSTRUCTIONS::split);
+        marshal_int16(pos + 1 + 2 + 1, 2 + 2);
+        marshal_int16(pos + 1 + 2 + 1 + 2, 2 + 2 + pro_tree->child->length + 1 + 2);
+
+        marshal_program(pos + 1 + 2 + 1 + 2 + 2, pro_tree->child);
+
+        marshal_instruction(pos + 1 + 2 + 1 + 2 + 2 + pro_tree->child->length, INSTRUCTIONS::endloop);
+        marshal_int16(pos + 1 + 2 + 1 + 2 + 2 + pro_tree->child->length + 1, -(1 + 2 + 2 + pro_tree->child->length));
+    }
+}
+
 void REx::Program::marshal_charset(int16_t pos, Pro_Tree *pro_tree) {
     marshal_content(pos, pro_tree->bytecode, pro_tree->length);
 }
-
-void REx::Program::marshal_repeat(int16_t pos, REx::Pro_Tree *pro_tree) {
-
-}
-

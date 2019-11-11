@@ -6,6 +6,7 @@
 #include <bitset>
 namespace REx {
     typedef uint8_t BYTE;
+    typedef int vmregister;
 
     enum INSTRUCTIONS {
         character   = 0x01,         //character char<1>         :whether sp == char
@@ -14,6 +15,9 @@ namespace REx {
 
         oneof       = 0x04,         //oneof set<32>             :sp in set
         loopch      = 0x05,         //loop char<1> times<2>     :loop char n times
+
+        loop        = 0x06,         //loop times<2>             :loop instructions
+        endloop     = 0x07,         //endloop L1<2>             :endloop sign
 
         match       = 0x00,         //match                     :end sign
     };

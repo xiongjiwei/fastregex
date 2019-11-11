@@ -53,6 +53,8 @@ namespace REx{
         void ins_jmp(Thread *thread);
         void ins_match(Thread *thread);
         void ins_loopch(Thread *thread);
+        void ins_loop(Thread *thread);
+        void ins_endloop(Thread *thread);
         void ins_oneof(Thread *thread);
 
         int16_t bit16_to_int16(int pc) const;
@@ -62,6 +64,8 @@ namespace REx{
         std::vector<Matched_range> success_recorder;
 
         std::bitset<8> error_code;
+
+        vmregister loop_times;
     };
 }
 
