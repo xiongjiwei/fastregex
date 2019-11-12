@@ -71,6 +71,9 @@ REx::Pro_Tree *REx::Program::compile_to_program_tree(REx::AST *ast) {
 
     if (left != nullptr) {
         root->length += left->length;
+        if (root->low != 0) {
+            root->length += left->length;
+        }
     }
 
     if (right != nullptr) {
@@ -266,8 +269,8 @@ void REx::Program::marshal_repeat(int16_t pos, REx::Pro_Tree *pro_tree) {
         marshal_instruction(pos, INSTRUCTIONS::loop);
         marshal_int16(pos + 1, pro_tree->high - pro_tree->low);
         marshal_instruction(pos + 1 + 2, INSTRUCTIONS::split);
-        marshal_int16(pos + 1 + 2 + 1, 2 + 2);
-        marshal_int16(pos + 1 + 2 + 1 + 2, 2 + 2 + pro_tree->child->length + 1 + 2);
+        marshal_int16(pos + 1 + 2 + 1, 1 + 2 + 2);
+        marshal_int16(pos + 1 + 2 + 1 + 2, 1 + 2 + 2 + pro_tree->child->length + 1 + 2);
 
         marshal_program(pos + 1 + 2 + 1 + 2 + 2, pro_tree->child);
 

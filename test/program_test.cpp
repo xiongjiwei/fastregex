@@ -161,23 +161,28 @@ TEST_CASE("bytecode test") {
         REx::BYTE valid_bytecode[] = {
                 0x06, 0x00, 0x01,               //loop 1
                 0x01, 'a',                      //char a
+                0x07, 0x00, 0x00,               //endloop -2
                 0x06, 0x00, 0x01,               //loop 1
-                0x02, 0x00, 0x00, 0x00, 0x00,   //split 4, 9
+                0x02, 0x00, 0x00, 0x00, 0x00,   //split 5, 10
                 0x01, 'a',                      //char a
                 0x07, 0x00, 0x00,               //endloop -7
                 0x01, 'b',                      //char b
                 0x00                            //match
         };
 
-        int16_t line = 4;
+        int16_t line = 1;
+        memcpy(valid_bytecode + 1, &line, 2);
+        line = -2;
+        memcpy(valid_bytecode + 6, &line, 2);
+        line = 1;
         memcpy(valid_bytecode + 9, &line, 2);
-        line = 9;
-        memcpy(valid_bytecode + 11, &line, 2);
+        line = 5;
+        memcpy(valid_bytecode + 12, &line, 2);
+        line = 10;
+        memcpy(valid_bytecode + 14, &line, 2);
         line = -7;
-        memcpy(valid_bytecode + 16, &line, 2);
+        memcpy(valid_bytecode + 19, &line, 2);
 
-        REx::BYTE t[21];
-        memcpy(t, bytecode, 21);
-        CHECK(memcmp(valid_bytecode, bytecode, 21) == 0);
+        CHECK(memcmp(valid_bytecode, bytecode, 24) == 0);
     }
 }
