@@ -5,6 +5,7 @@
 #define CATCH_CONFIG_MAIN
 
 #include "catch.hpp"
+#define private public
 #include "../src/lexer/parser.h"
 
 TEST_CASE("should return the right size of string", "[restring][size]") {

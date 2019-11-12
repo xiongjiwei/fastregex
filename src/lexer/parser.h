@@ -12,7 +12,9 @@
 #include "ast.h"
 namespace REx {
     class REstring {
-    public:
+    private:
+        friend class Parser;
+        friend class Fastre;
         explicit REstring(const std::string &pattern_) : pattern(pattern_) {}
 
         void remove_prefix(int count = 1) {
@@ -26,14 +28,13 @@ namespace REx {
         char operator[](const size_t index_) const {
             return index_ + cur_index >= pattern.size() ? pattern[pattern.size() - 1] : pattern[index_ + cur_index];
         }
-
-    private:
         const std::string &pattern;
         size_t cur_index = 0;
     };
 
     class Parser {
-    public:
+    private:
+        friend class Fastre;
         explicit Parser(REstring& restring_): restring(restring_){}
 
         AST* regex();
@@ -46,6 +47,7 @@ namespace REx {
         AST* chars();
 
         AST *maybe_repeat(AST *root);
+        std::unordered_set<char> * process_escape();
 
         static const unsigned char bad_escape =         1;
         static const unsigned char bad_parenthesis =    2;
@@ -57,15 +59,12 @@ namespace REx {
         bool get_error_code(unsigned char code) const {
             return error_code[code];
         }
-
-    private:
         REstring& restring;
         const std::unordered_set<char> UNHANDLED_CHAR = {'*', '+', '?', ')', '|',};
 
         static AST * collapse_unary_operator(AST *child, AST::NODETYPE type);
         static AST * collapse_binary_operator(AST *left, AST* right, AST::NODETYPE type);
 
-        std::unordered_set<char> * process_escape();
         static bool is_HEX_digital(const char c) {
             return ('0' <= c && c <= '9') || ('a' <= c && c <= 'f') || ('A' <= c && c <= 'F');
         }

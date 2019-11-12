@@ -3,11 +3,10 @@
 //
 
 #include "catch.hpp"
-#include "../src/lexer/parser.h"
 #include <cstring>
 
 #define private public
-
+#include "../src/lexer/parser.h"
 #include "../src/vm/program.h"
 
 TEST_CASE("ast to program") {

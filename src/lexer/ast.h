@@ -21,6 +21,9 @@ namespace REx {
             CHARSET
         };
 
+    private:
+        friend class Program;
+        friend class Parser;
         explicit AST(const NODETYPE type_) : type(type_) {}
 
         ~AST() {
@@ -45,8 +48,8 @@ namespace REx {
 
         bool operator==(AST &other) {
             return this->charset == other.charset &&
-                    this->low == other.low && this->high == other.high &&
-                    this->type == other.type &&
+                   this->low == other.low && this->high == other.high &&
+                   this->type == other.type &&
                    (this->left == other.left ||
                     (this->left != nullptr && other.left != nullptr && *(left) == *(other.left))) &&
                    (this->right == other.right ||
@@ -61,8 +64,6 @@ namespace REx {
         std::bitset<256> & get_charset() {
             return charset;
         }
-
-    private:
         std::bitset<256> charset;
         bool is_valid();
 

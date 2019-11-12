@@ -19,6 +19,7 @@ namespace REx {
 
         ~Fastre() {
             delete [] bytecode;
+            bytecode = nullptr;
         }
     private:
         BYTE *bytecode = nullptr;

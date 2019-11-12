@@ -13,7 +13,7 @@ namespace REx {
 
     class Pro_Tree {
     public:
-        Pro_Tree(AST::NODETYPE type) {
+        explicit Pro_Tree(AST::NODETYPE type) {
             this->type = type;
         };
 
@@ -35,10 +35,7 @@ namespace REx {
         void set_bytecode_content(int16_t pos, BYTE *byte, int16_t n) {
             memcpy(bytecode + pos, byte, n);
         }
-
-        friend class Program;
-    private:
-        size_t length;
+        size_t length = 0;
         BYTE *bytecode = nullptr;
         AST::NODETYPE type;
         Pro_Tree *left = nullptr;
@@ -50,9 +47,9 @@ namespace REx {
     };
 
     class Program {
-    public:
-        BYTE *to_bytecode(AST *ast);
     private:
+        friend class Fastre;
+        BYTE *to_bytecode(AST *ast);
         static Pro_Tree * compile_charset(AST *ast);
         static Pro_Tree * compile_to_program_tree(AST *ast);
         void marshal_program(int16_t pos, REx::Pro_Tree *pro_tree);

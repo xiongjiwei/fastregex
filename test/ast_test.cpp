@@ -3,6 +3,7 @@
 //
 
 #include "catch.hpp"
+#define private public
 #include "../src/lexer/ast.h"
 #include "../src/lexer/parser.h"
 
