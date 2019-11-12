@@ -70,9 +70,7 @@ TEST_CASE("vm instructions test") {
         vm.ins_match(thread);
 
         CHECK_FALSE(thread->alive);
-        REQUIRE(vm.success_recorder.size() == 1);
-        CHECK(vm.success_recorder.at(0).start == 0);
-        CHECK(vm.success_recorder.at(0).end == 3);
+        CHECK(vm.success_sp == 3);
     }
 
     SECTION("loopch instructions") {
@@ -219,11 +217,9 @@ TEST_CASE("vm instructions test") {
             line_num = -7;
             memcpy(program + 10, &line_num, 2);
             REx::Vm vm = REx::Vm(matched_string, program);
-            vm.start_vm();
+            vm.do_match(0);
 
-            REQUIRE(vm.success_recorder.size() == 1);
-            CHECK(vm.success_recorder.at(0).start == 0);
-            CHECK(vm.success_recorder.at(0).end == 5);
+            CHECK(vm.success_sp == 5);
             CHECK(vm.running_thread_list.empty());
         }
 
@@ -240,11 +236,9 @@ TEST_CASE("vm instructions test") {
             line_num = -2;
             memcpy(program + 6, &line_num, 2);
             REx::Vm vm = REx::Vm(matched_string, program);
-            vm.start_vm();
+            vm.do_match(0);
 
-            REQUIRE(vm.success_recorder.size() == 1);
-            CHECK(vm.success_recorder.at(0).start == 0);
-            CHECK(vm.success_recorder.at(0).end == 5);
+            CHECK(vm.success_sp == 5);
             CHECK(vm.running_thread_list.empty());
         }
     }

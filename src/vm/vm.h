@@ -5,9 +5,7 @@
 #ifndef FASTREGEXCPP_VM_H
 #define FASTREGEXCPP_VM_H
 
-#include <vector>
 #include <string>
-#include <queue>
 #include <bitset>
 #include <stack>
 #include "../re/rex.h"
@@ -25,19 +23,11 @@ namespace REx{
         THREAD (int pc, int sp, int sp_start_point): PC(pc), SP(sp), sp_start_point(sp_start_point) {};
     } Thread;
 
-    typedef struct {
-        size_t start;
-        size_t end;
-    } Matched_range;
-
     class Vm {
-    public:
-        Vm(const std::string &matched_data_, const BYTE *program_): matched_data(matched_data_), program(program_) {}
-
-        void start_vm();
-        std::vector<Matched_range> get_matched_result();
     private:
-        int do_match(int sp);
+        friend class Fastre;
+        Vm(const std::string &matched_data_, const BYTE *program_): matched_data(matched_data_), program(program_) {}
+        int do_match(int start_sp);
 
         bool run_thread(Thread *thread);
         void append_thread(Thread *thread);
@@ -45,8 +35,6 @@ namespace REx{
 
         void destroy_running_thread_list();
         Thread *get_next_thread();
-
-        void record_success(size_t start, size_t end);
 
         void ins_character(Thread *thread);
         void ins_split(Thread *thread);
@@ -61,7 +49,7 @@ namespace REx{
         const BYTE *program;
         const std::string &matched_data;
         std::stack<Thread *> running_thread_list;
-        std::vector<Matched_range> success_recorder;
+        int success_sp = 0;
 
         std::bitset<8> error_code;
 

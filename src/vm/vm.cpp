@@ -5,25 +5,18 @@
 #include <cstring>
 #include "vm.h"
 
-void REx::Vm::start_vm() {
-    for (size_t i = 0; i < matched_data.length();) {
-        i = do_match(i);
-    }
-}
-
-int REx::Vm::do_match(int sp) {
-    append_thread(new Thread(0, sp, sp));
+int REx::Vm::do_match(int start_sp) {
+    append_thread(new Thread(0, start_sp, start_sp));
     while (!running_thread_list.empty()) {
         Thread *next_thread = get_next_thread();
         if (run_thread(next_thread)) {
             destroy_running_thread_list();
-
-            return success_recorder.back().end;
+            return success_sp;
         }
         delete next_thread;
     }
 
-    return sp + 1;
+    return 0;
 }
 
 bool REx::Vm::run_thread(REx::Thread *thread) {
@@ -80,12 +73,11 @@ void REx::Vm::ins_jmp(REx::Thread *thread) {
 }
 
 void REx::Vm::ins_match(REx::Thread *thread) {
-    record_success(thread->sp_start_point, thread->SP);
+    success_sp = thread->SP;
     terminal_thread(thread);
 }
 
 void REx::Vm::ins_loopch(REx::Thread *thread) {
-//    int times = program[thread->PC + 2] * 256 + program[thread->PC + 3];
     int times = bit16_to_int16(thread->PC + 2);
 
     while (times != 0) {
@@ -102,7 +94,6 @@ void REx::Vm::ins_loopch(REx::Thread *thread) {
 }
 
 void REx::Vm::ins_loop(REx::Thread *thread) {
-//    loop_times = program[thread->PC + 1] * 256 + program[thread->PC + 2];
     loop_times = bit16_to_int16(thread->PC + 1);
     thread->PC += 3;
 }
@@ -139,13 +130,6 @@ void REx::Vm::terminal_thread(REx::Thread *thread) {
     thread->alive = false;
 }
 
-void REx::Vm::record_success(size_t start, size_t end) {
-    Matched_range matchedRange;
-    matchedRange.start = start;
-    matchedRange.end = end;
-    success_recorder.push_back(matchedRange);
-}
-
 void REx::Vm::destroy_running_thread_list() {
     while (!running_thread_list.empty()) {
         delete running_thread_list.top();
@@ -157,10 +141,6 @@ int16_t REx::Vm::bit16_to_int16(int pc) const {
     int16_t t = 0;
     memcpy(&t, program + pc, 2);
     return t;
-}
-
-std::vector<REx::Matched_range> REx::Vm::get_matched_result() {
-    return success_recorder;
 }
 
 REx::Thread *REx::Vm::get_next_thread() {
