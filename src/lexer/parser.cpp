@@ -6,8 +6,16 @@
 #include "parser.h"
 #include "ast.h"
 
+//^e1$
 REx::AST *REx::Parser::regex() {
-    return nullptr;
+    AST *root = nullptr;
+    if (restring.size() > 0 && restring[0] == '^') {
+
+    }
+
+    root = exper();
+
+    return root;
 }
 
 //e1 | e2 | e3 | ...
