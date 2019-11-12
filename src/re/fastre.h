@@ -7,6 +7,7 @@
 
 
 #include <string>
+#include <vector>
 #include "../vm/program.h"
 
 namespace REx {
@@ -14,6 +15,7 @@ namespace REx {
     public:
         void compile(const std::string&);
         bool full_match(const std::string&);
+        std::vector<int> match(const std::string&);
 
         ~Fastre() {
             delete [] bytecode;

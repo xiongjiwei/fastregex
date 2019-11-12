@@ -19,7 +19,19 @@ bool REx::Fastre::full_match(const std::string &string) {
         return false;
     }
     REx::Vm vm = REx::Vm(string, bytecode);
-    vm.start_vm();
-    return !vm.get_matched_result().empty() &&
-           (vm.get_matched_result()[0].start == 0 && vm.get_matched_result()[0].end == string.size());
+    return vm.do_match(0) == string.size();
+}
+
+std::vector<int> REx::Fastre::match(const std::string &string) {
+    REx::Vm vm = REx::Vm(string, bytecode);
+    std::vector<int> ret(16);
+    for (size_t i = 0; i < string.size(); ++i) {
+        int sp = vm.do_match(i);
+        if (sp != 0) {
+            ret.push_back(i);
+            ret.push_back(sp);
+            i = sp;
+        }
+    }
+    return ret;
 }
