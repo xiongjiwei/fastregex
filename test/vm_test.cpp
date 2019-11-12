@@ -268,4 +268,14 @@ TEST_CASE("match test") {
         CHECK(fastre.full_match("553"));
         CHECK_FALSE(fastre.full_match("5"));
     }
+
+    SECTION("") {
+        std::string string = "\\d{4,6}";
+        REx::Fastre fastre;
+        fastre.compile(string);
+
+        CHECK(fastre.full_match("5533"));
+        CHECK_FALSE(fastre.full_match("512"));
+        CHECK_FALSE(fastre.full_match("512s"));
+    }
 }
