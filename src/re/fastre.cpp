@@ -10,8 +10,7 @@ void REx::Fastre::compile(const std::string& pattern_) {
     REx::REstring restring(pattern_);
     REx::Parser parser(restring);
 
-    auto program_ = new Program();
-    bytecode = program_->to_bytecode(parser.exper());
+    bytecode = REx::Program::to_bytecode(parser.exper());
 }
 
 bool REx::Fastre::full_match(const std::string &string) {

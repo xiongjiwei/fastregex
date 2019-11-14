@@ -5,20 +5,21 @@
 #include <cstring>
 #include <climits>
 #include "program.h"
+REx::BYTE * REx::Program::program = nullptr;
 
 REx::BYTE *REx::Program::to_bytecode(AST *ast) {
     auto pro_tree = compile_to_program_tree(ast);
     delete ast;
     init_program(pro_tree);
     marshal_program(0, pro_tree);
-    program[pro_tree->length] = 0x00;
+    REx::Program::program[pro_tree->length] = 0x00;
 
     delete pro_tree;
-    return program;
+    return REx::Program::program;
 }
 
 void REx::Program::init_program(const Pro_Tree *pro_tree) {
-    this->program = new BYTE[pro_tree->length + 1];
+    REx::Program::program = new BYTE[pro_tree->length + 1];
 }
 
 REx::Pro_Tree *REx::Program::compile_charset(AST *ast) {

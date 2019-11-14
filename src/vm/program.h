@@ -45,28 +45,27 @@ namespace REx {
         int low = 0;
         int high = 0;
     };
-
     class Program {
     private:
         friend class Fastre;
-        BYTE *to_bytecode(AST *ast);
+        static BYTE *to_bytecode(AST *ast);
         static Pro_Tree * compile_charset(AST *ast);
         static Pro_Tree * compile_to_program_tree(AST *ast);
-        void marshal_program(int16_t pos, REx::Pro_Tree *pro_tree);
-        void marshal_or(int16_t pos, Pro_Tree *pro_tree);
-        void marshal_star(int16_t pos, Pro_Tree *pro_tree);
-        void marshal_plus(int16_t pos, Pro_Tree *pro_tree);
-        void marshal_option(int16_t pos, Pro_Tree *pro_tree);
-        void marshal_and(int16_t pos, Pro_Tree *pro_tree);
-        void marshal_repeat(int16_t pos, Pro_Tree *pro_tree);
-        void marshal_charset(int16_t pos, Pro_Tree *pro_tree);
+        static void marshal_program(int16_t pos, REx::Pro_Tree *pro_tree);
+        static void marshal_or(int16_t pos, Pro_Tree *pro_tree);
+        static void marshal_star(int16_t pos, Pro_Tree *pro_tree);
+        static void marshal_plus(int16_t pos, Pro_Tree *pro_tree);
+        static void marshal_option(int16_t pos, Pro_Tree *pro_tree);
+        static void marshal_and(int16_t pos, Pro_Tree *pro_tree);
+        static void marshal_repeat(int16_t pos, Pro_Tree *pro_tree);
+        static void marshal_charset(int16_t pos, Pro_Tree *pro_tree);
 
-        void init_program(const Pro_Tree *pro_tree);
+        static void init_program(const Pro_Tree *pro_tree);
         static int get_padding_byte_length(AST *ast);
-        void marshal_int16(int16_t pos, int16_t num);
-        void marshal_instruction(int16_t pos, REx::BYTE instruction);
-        void marshal_content(int16_t pos, BYTE *bytecode, int16_t length);
-        BYTE *program;
+        static void marshal_int16(int16_t pos, int16_t num);
+        static void marshal_instruction(int16_t pos, REx::BYTE instruction);
+        static void marshal_content(int16_t pos, BYTE *bytecode, int16_t length);
+        static BYTE *program;
     };
 }
 
