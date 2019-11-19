@@ -98,7 +98,7 @@ TEST_CASE("bytecode test") {
         REx::Parser parser(restring);
 
         REx::AST *ast = parser.exper();
-        auto bytecode = (new REx::Program())->to_bytecode(ast);
+        auto bytecode = REx::Program::to_bytecode(ast);
         REx::BYTE valid_bytecode[] = {
                 0x02, 0x00, 0x00, 0x00, 0x00,       //split L1, L2
                 0x04,                               //oneof
@@ -156,7 +156,7 @@ TEST_CASE("bytecode test") {
         REx::Parser parser(restring);
 
         REx::AST *ast = parser.exper();
-        auto bytecode = (new REx::Program())->to_bytecode(ast);
+        auto bytecode = REx::Program::to_bytecode(ast);
         REx::BYTE valid_bytecode[] = {
                 0x06, 0x00, 0x01,               //loop 1
                 0x01, 'a',                      //char a
@@ -191,7 +191,7 @@ TEST_CASE("bytecode test") {
         REx::Parser parser(restring);
 
         REx::AST *ast = parser.exper();
-        auto bytecode = (new REx::Program())->to_bytecode(ast);
+        auto bytecode = REx::Program::to_bytecode(ast);
         REx::BYTE valid_bytecode[] = {
                 0x06, 0x00, 0x00,               //loop 3
                 0x01, 'a',                      //char a
@@ -227,7 +227,7 @@ TEST_CASE("bytecode test") {
         REx::Parser parser(restring);
 
         REx::AST *ast = parser.exper();
-        auto bytecode = (new REx::Program())->to_bytecode(ast);
+        auto bytecode = REx::Program::to_bytecode(ast);
         REx::BYTE valid_bytecode[] = {
                 0x06, 0x00, 0x00,               //loop 2
                 0x02, 0x00, 0x00, 0x00, 0x00,   //split 5, 10
@@ -249,5 +249,35 @@ TEST_CASE("bytecode test") {
         REx::BYTE t[16];
         memcpy(t, bytecode, 16);
         CHECK(memcmp(valid_bytecode, bytecode, 16) == 0);
+    }
+
+    SECTION("") {
+        std::string string = ".*";
+        REx::REstring restring(string);
+        REx::Parser parser(restring);
+
+        REx::AST *ast = parser.exper();
+        auto bytecode = REx::Program::to_bytecode(ast);
+        REx::BYTE valid_bytecode[] = {
+                0x02, 0x00, 0x00, 0x00, 0x00,    //split 5, 41
+                0x04,                            //oneof
+                0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+                0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+                0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+                0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+                0x03, 0x00, 0x00,                //jmp -33
+                0x00,                            //match
+        };
+
+        int16_t line = 5;
+        memcpy(valid_bytecode + 1, &line, 2);
+        line = 41;
+        memcpy(valid_bytecode + 3, &line, 2);
+        line = -38;
+        memcpy(valid_bytecode + 39, &line, 2);
+
+        REx::BYTE t[42];
+        memcpy(t, bytecode, 42);
+        CHECK(memcmp(valid_bytecode, bytecode, 42) == 0);
     }
 }

@@ -43,6 +43,23 @@ TEST_CASE("bitset cast to byte test", "[bitset][byte]") {
     }
 
     SECTION("") {
+        std::bitset<256> bitset;
+        for (size_t i = 0; i < 256; ++i) {
+            bitset[i] = true;
+        }
+        REx::BYTE *ret = REx::cast_to_byte(bitset);
+        REx::BYTE should_equal[] = {
+                0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+                0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+                0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+                0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+        };
+
+        REQUIRE(ret != nullptr);
+        CHECK(memcmp(ret, should_equal, 32) == 0);
+    }
+
+    SECTION("") {
         std::bitset<0> bitset;
         REx::BYTE *ret = REx::cast_to_byte(bitset);
 

@@ -114,7 +114,7 @@ void REx::Vm::ins_oneof(REx::Thread *thread) {
     BYTE mask = 0x80u >> bit_index;                 //1000 0000
 
     BYTE i = program[thread->PC + 1 + index];
-    if ((i & mask) != 0) {
+    if (thread->SP < matched_data.length() && (i & mask) != 0) {
         thread->SP += 1;
         thread->PC += 33;
     } else {

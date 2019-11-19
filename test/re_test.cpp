@@ -45,6 +45,14 @@ TEST_CASE("match test") {
             CHECK(fastre.full_match("512"));
             CHECK(fastre.full_match("512s"));
         }
+
+        WHEN("") {
+            string = ".{12,90}";
+            fastre.compile(string);
+
+            CHECK_FALSE(fastre.full_match("512oidoixlcvlkglduoiuzsiouc"));  //lasy, only match 12 chars
+            CHECK_FALSE(fastre.full_match("5533"));
+        }
     }
 
 
