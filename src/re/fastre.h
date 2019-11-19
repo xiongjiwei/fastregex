@@ -17,6 +17,11 @@ namespace REx {
         bool full_match(const std::string&);
         std::vector<int> match(const std::string&);
 
+        void release() {
+            delete [] bytecode;
+            bytecode = nullptr;
+        }
+
         ~Fastre() {
             delete [] bytecode;
             bytecode = nullptr;

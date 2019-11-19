@@ -36,6 +36,15 @@ TEST_CASE("match test") {
             CHECK_FALSE(fastre.full_match("512"));
             CHECK_FALSE(fastre.full_match("512s"));
         }
+
+        WHEN("") {
+            string = ".*";
+            fastre.compile(string);
+
+            CHECK(fastre.full_match("5533"));
+            CHECK(fastre.full_match("512"));
+            CHECK(fastre.full_match("512s"));
+        }
     }
 
 

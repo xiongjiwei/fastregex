@@ -2,9 +2,12 @@
 #include "src/re/fastre.h"
 
 int main() {
-    std::cout << "Hello, World!" << std::endl;
     REx::Fastre re;
     re.compile(".*");
+    if (re.full_match("09933")) {
+        std::cout << "Hello, World!" << std::endl;
+    }
+    re.release();
 
     return 0;
 }
