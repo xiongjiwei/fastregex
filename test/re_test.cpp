@@ -50,5 +50,14 @@ TEST_CASE("match test") {
             CHECK(fastre.error_index == 1);
             CHECK(fastre.error_msg == "bad escape");
         }
+
+        WHEN("bad square bracket") {
+            string = "abcg[1-3";
+            fastre.compile(string);
+
+            CHECK(fastre.bytecode == nullptr);
+            CHECK(fastre.error_index == 8);
+            CHECK(fastre.error_msg == "bad square bracket");
+        }
     }
 }
