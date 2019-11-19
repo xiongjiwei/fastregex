@@ -9,6 +9,9 @@ REx::BYTE * REx::Program::program = nullptr;
 
 REx::BYTE *REx::Program::to_bytecode(AST *ast) {
     auto pro_tree = compile_to_program_tree(ast);
+    if (pro_tree == nullptr) {
+        return nullptr;
+    }
     delete ast;
     init_program(pro_tree);
     marshal_program(0, pro_tree);

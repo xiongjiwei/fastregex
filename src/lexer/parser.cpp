@@ -6,6 +6,15 @@
 #include "parser.h"
 #include "ast.h"
 
+const std::string REx::Parser::error_msgs[8] = {
+        "all right",
+        "bad escape",
+        "bad parenthesis",
+        "bad quantifier",
+        "bad char range",
+        "bad square bracket",
+        "bad alternation",
+};
 //^e1$
 REx::AST *REx::Parser::regex() {
     AST *root = nullptr;

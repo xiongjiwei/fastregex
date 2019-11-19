@@ -3,6 +3,7 @@
 //
 
 #include "catch.hpp"
+#define private public
 #include "../src/re/fastre.h"
 
 TEST_CASE("match test") {
@@ -17,7 +18,7 @@ TEST_CASE("match test") {
             CHECK_FALSE(fastre.full_match("A"));
         }
 
-        SECTION("") {
+        WHEN("") {
             string = "\\d*[123]";
             fastre.compile(string);
 
@@ -27,7 +28,7 @@ TEST_CASE("match test") {
             CHECK_FALSE(fastre.full_match("5"));
         }
 
-        SECTION("") {
+        WHEN("") {
             string = "\\d{4,6}";
             fastre.compile(string);
 
@@ -37,4 +38,17 @@ TEST_CASE("match test") {
         }
     }
 
+
+    SECTION("wrong regex") {
+        std::string string;
+        REx::Fastre fastre;
+        WHEN("bad escape") {
+            string = "\\";
+            fastre.compile(string);
+
+            CHECK(fastre.bytecode == nullptr);
+            CHECK(fastre.error_index == 1);
+            CHECK(fastre.error_msg == "bad escape");
+        }
+    }
 }

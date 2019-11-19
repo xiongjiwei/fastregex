@@ -23,6 +23,8 @@ namespace REx {
         }
     private:
         BYTE *bytecode = nullptr;
+        std::string error_msg;
+        int error_index;
     };
 }
 

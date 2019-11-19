@@ -85,9 +85,14 @@ namespace REx {
 
         void set_error_code(unsigned char code) {
             error_code[code] = true;
+            error_index = restring.cur_index;
+            error_msg = error_msgs[code];
         }
 
+        static const std::string error_msgs[8];
         std::bitset<8> error_code;
+        int error_index;
+        std::string error_msg;
     };
 }
 
