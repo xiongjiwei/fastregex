@@ -120,6 +120,7 @@ REx::AST *REx::Parser::maybe_repeat(AST *root) {
 
         while (restring.size() > 0 && restring[0] <= '9' && restring[0] >= '0') {
             high = high == INT_MAX ? 0 : high;
+            high *= 10;
             high += restring[0] - '0';
             restring.remove_prefix();
             removed_count++;

@@ -32,7 +32,7 @@ TEST_CASE("match test") {
             string = "\\d{4,6}";
             fastre.compile(string);
 
-            CHECK(fastre.full_match("5533"));
+            CHECK(fastre.full_match("55331"));
             CHECK_FALSE(fastre.full_match("512"));
             CHECK_FALSE(fastre.full_match("512s"));
         }
@@ -50,7 +50,7 @@ TEST_CASE("match test") {
             string = ".{12,90}";
             fastre.compile(string);
 
-            CHECK_FALSE(fastre.full_match("512oidoixlcvlkglduoiuzsiouc"));  //lasy, only match 12 chars
+            CHECK(fastre.full_match("512oidoixlcvlkglduoiuzsiouc"));
             CHECK_FALSE(fastre.full_match("5533"));
         }
     }
