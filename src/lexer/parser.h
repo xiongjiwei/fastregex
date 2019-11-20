@@ -91,7 +91,7 @@ namespace REx {
 
         static const std::string error_msgs[8];
         std::bitset<8> error_code;
-        int error_index;
+        int error_index = 0;
         std::string error_msg;
     };
 }
