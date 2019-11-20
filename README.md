@@ -14,6 +14,12 @@ This is a regular expression engine.
 - `[a]` `\d` `\w` support Character classes
 - `(abc)` support group
 
+## TODO
+
+1. Anchors
+2. Lookaround
+3. Groups & References
+
 ## About
 
 Parser the pattern to abstract syntax tree, and then compile the abstract syntax tree to bytecode program. Use virture machine to run the bytecode program.
