@@ -127,5 +127,35 @@ TEST_CASE("match test") {
                 }
             }
         }
+
+        WHEN("ip test") {
+            pattern = R"(\w[-\w\d.+]*@([A-Za-z0-9][-A-Za-z0-9]+\.)+[A-Za-z]{2,14})";
+            fastre.compile(pattern);
+            WHEN("right email address") {
+                std::string emails[] = {
+                        "dfq123.@fgdg1-fggv.sdf.com",
+                        "d.@fgdg1-fggv.sdf.com.cn.edu.xjw",
+                        "d+++.@fggv.sdf.com.cn.edu.xjw",
+                };
+                for (auto &i : emails) {
+                    CHECK(fastre.full_match(i));
+                }
+            }
+
+            WHEN("wrong email address") {
+                std::string emails[] = {
+                        "dfq123.@fgdg1-fggv.sdf.com.",
+                        "df@q123.@fgdg1-fggv.sdf.com.",
+                        "123.@fgdg1-fggv.sdf.com.",
+                        "123om.",
+                        "d123@om.com.",
+                        "d123@om.com.s",
+                };
+
+                for (auto &i : emails) {
+                    CHECK_FALSE(fastre.full_match(i));
+                }
+            }
+        }
     }
 }
