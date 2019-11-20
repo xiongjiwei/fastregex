@@ -8,19 +8,19 @@
 
 TEST_CASE("match test") {
     SECTION("any") {
-        std::string string;
+        std::string pattern;
         REx::Fastre fastre;
         WHEN("") {
-            string = "[a-z]*(abc)+(a|bc)?";
-            fastre.compile(string);
+            pattern = "[a-z]*(abc)+(a|bc)?";
+            fastre.compile(pattern);
 
             CHECK(fastre.full_match("abcdabcabcbc"));
             CHECK_FALSE(fastre.full_match("A"));
         }
 
         WHEN("") {
-            string = "\\d*[123]";
-            fastre.compile(string);
+            pattern = "\\d*[123]";
+            fastre.compile(pattern);
 
             CHECK(fastre.full_match("553"));
             CHECK(fastre.full_match("55223"));
@@ -29,8 +29,8 @@ TEST_CASE("match test") {
         }
 
         WHEN("") {
-            string = "\\d{4,6}";
-            fastre.compile(string);
+            pattern = "\\d{4,6}";
+            fastre.compile(pattern);
 
             CHECK(fastre.full_match("55331"));
             CHECK_FALSE(fastre.full_match("512"));
@@ -38,15 +38,15 @@ TEST_CASE("match test") {
         }
 
         WHEN("") {
-            string = "a{4}a";
-            fastre.compile(string);
+            pattern = "a{4}a";
+            fastre.compile(pattern);
 
             CHECK(fastre.full_match("aaaaa"));
         }
 
         WHEN("") {
-            string = ".*";
-            fastre.compile(string);
+            pattern = ".*";
+            fastre.compile(pattern);
 
             CHECK(fastre.full_match("5533"));
             CHECK(fastre.full_match("512"));
@@ -54,21 +54,25 @@ TEST_CASE("match test") {
         }
 
         WHEN("") {
-            string = ".{12,90}";
-            fastre.compile(string);
+            pattern = ".{12,90}";
+            fastre.compile(pattern);
 
             CHECK(fastre.full_match("512oidoixlcvlkglduoiuzsiouc"));
             CHECK_FALSE(fastre.full_match("5533"));
+        }
+
+        WHEN("") {
+
         }
     }
 
 
     SECTION("wrong regex") {
-        std::string string;
+        std::string pattern;
         REx::Fastre fastre;
         WHEN("bad escape") {
-            string = "\\";
-            fastre.compile(string);
+            pattern = "\\";
+            fastre.compile(pattern);
 
             CHECK(fastre.bytecode == nullptr);
             CHECK(fastre.error_index == 1);
@@ -76,12 +80,52 @@ TEST_CASE("match test") {
         }
 
         WHEN("bad square bracket") {
-            string = "abcg[1-3";
-            fastre.compile(string);
+            pattern = "abcg[1-3";
+            fastre.compile(pattern);
 
             CHECK(fastre.bytecode == nullptr);
             CHECK(fastre.error_index == 8);
             CHECK(fastre.error_msg == "bad square bracket");
+        }
+    }
+
+    SECTION("regex test") {
+        std::string pattern;
+        REx::Fastre fastre;
+        WHEN("ip test") {
+            pattern = R"((25[0-5]|2[0-4]\d|[0-1]\d\d|[1-9]?\d)\.(25[0-5]|2[0-4]\d|[0-1]\d\d|[1-9]?\d)\.(25[0-5]|2[0-4]\d|[0-1]\d\d|[1-9]?\d)\.(25[0-5]|2[0-4]\d|[0-1]\d\d|[1-9]?\d))";
+            fastre.compile(pattern);
+            WHEN("right ip") {
+                std::string ips[] = {
+                        "192.180.200.255",
+                        "1.1.2.2",
+                        "192.80.0.5",
+                        "92.18.20.2",
+                        "0.0.0.0",
+                };
+                for (auto &i : ips) {
+                    CHECK(fastre.full_match(i));
+                }
+            }
+
+            WHEN("wrong ip") {
+                std::string ips[] = {
+                        "192.180.2010.255",
+                        "255.256.200.255",
+                        "192.s.200.255",
+                        "192.180.2f0.255",
+                        "192.180.255",
+                        "192.180v200.255",
+                        "192.180.200.255.",
+                        "192.180.200.255.200",
+                        "192.",
+                        "abcg",
+                };
+
+                for (auto &i : ips) {
+                    CHECK_FALSE(fastre.full_match(i));
+                }
+            }
         }
     }
 }
