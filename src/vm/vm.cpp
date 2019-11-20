@@ -10,6 +10,7 @@ int REx::Vm::do_match(int start_sp) {
     while (!running_thread_list.empty()) {
         Thread *next_thread = get_next_thread();
         if (run_thread(next_thread)) {
+            delete next_thread;
             destroy_running_thread_list();
             return success_sp;
         }
