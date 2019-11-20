@@ -75,7 +75,7 @@ REx::Pro_Tree *REx::Program::compile_to_program_tree(REx::AST *ast) {
 
     if (left != nullptr) {
         root->length += left->length;
-        if (root->low != 0) {
+        if (root->low != 0 && root->low != root->high) {
             root->length += left->length;
         }
     }

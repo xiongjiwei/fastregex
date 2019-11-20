@@ -38,6 +38,13 @@ TEST_CASE("match test") {
         }
 
         WHEN("") {
+            string = "a{4}a";
+            fastre.compile(string);
+
+            CHECK(fastre.full_match("aaaaa"));
+        }
+
+        WHEN("") {
             string = ".*";
             fastre.compile(string);
 
