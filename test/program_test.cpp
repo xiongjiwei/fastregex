@@ -11,7 +11,7 @@
 
 TEST_CASE("ast to program") {
     SECTION("charset") {
-        auto *charset = new REx::AST(REx::AST::CHARSET);
+        auto *charset = new REx::AST(REx::Nodetype::CHARSET);
         charset->add_character('a');
 
         auto program = REx::Program::compile_charset(charset);
@@ -22,7 +22,7 @@ TEST_CASE("ast to program") {
     }
 
     SECTION("charset") {
-        auto *charset = new REx::AST(REx::AST::CHARSET);
+        auto *charset = new REx::AST(REx::Nodetype::CHARSET);
         charset->add_character(0x00);
         charset->add_character(0x01);
         charset->add_character(0x02);
@@ -44,7 +44,7 @@ TEST_CASE("ast to program") {
     }
 
     SECTION("charset") {
-        auto *charset = new REx::AST(REx::AST::CHARSET);
+        auto *charset = new REx::AST(REx::Nodetype::CHARSET);
         charset->set_charset_negative();
 
         auto program = REx::Program::compile_charset(charset);
@@ -70,9 +70,9 @@ TEST_CASE("translate to program tree") {
         auto ret = REx::Program::compile_to_program_tree(parser.exper());
 
         CHECK(ret->length == 10);
-        CHECK(ret->type == REx::AST::STAR);
+        CHECK(ret->type == REx::Nodetype::STAR);
         CHECK(ret->child->length == 2);
-        CHECK(ret->child->type == REx::AST::CHARSET);
+        CHECK(ret->child->type == REx::Nodetype::CHARSET);
     }
 
     SECTION("") {
@@ -83,11 +83,11 @@ TEST_CASE("translate to program tree") {
         auto ret = REx::Program::compile_to_program_tree(parser.exper());
 
         CHECK(ret->length == 17);
-        CHECK(ret->type == REx::AST::AND);
+        CHECK(ret->type == REx::Nodetype::AND);
         CHECK(ret->left->length == 7);
-        CHECK(ret->left->type == REx::AST::PLUS);
+        CHECK(ret->left->type == REx::Nodetype::PLUS);
         CHECK(ret->right->length == 10);
-        CHECK(ret->right->type == REx::AST::STAR);
+        CHECK(ret->right->type == REx::Nodetype::STAR);
     }
 }
 

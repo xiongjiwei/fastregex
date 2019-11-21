@@ -35,7 +35,7 @@ REx::Pro_Tree *REx::Program::compile_charset(AST *ast) {
 
     if (charset.count() == 1) {
         leaf->init_bytecode(2);
-        leaf->set_bytecode_content(0, (BYTE)REx::Instructions::character);
+        leaf->set_bytecode_content(0, (BYTE)REx::Instructions::Character);
         for (BYTE i = 0;; ++i) {
             if (charset.test(i)) {
                 leaf->set_bytecode_content(1, i);
@@ -44,7 +44,7 @@ REx::Pro_Tree *REx::Program::compile_charset(AST *ast) {
         }
     } else {
         leaf->init_bytecode(33);
-        leaf->set_bytecode_content(0, (BYTE)REx::Instructions::oneof);
+        leaf->set_bytecode_content(0, (BYTE)REx::Instructions::Oneof);
         BYTE *bitset_to_byte = cast_to_byte(charset);
         leaf->set_bytecode_content(1, bitset_to_byte, 32);
         delete[] bitset_to_byte;
@@ -58,7 +58,7 @@ REx::Pro_Tree *REx::Program::compile_to_program_tree(REx::AST *ast) {
         return nullptr;
     }
 
-    if (ast->type == AST::CHARSET) {
+    if (ast->type == Nodetype::CHARSET) {
         return compile_charset(ast);
     }
 
@@ -111,7 +111,7 @@ int REx::Program::get_padding_byte_length(AST *ast) {
             0,      //charset
     };
 
-    if (ast->type == AST::REPEAT) {
+    if (ast->type == Nodetype::REPEAT) {
         if (ast->low != 0) {
             padding += 6;
         }
@@ -123,31 +123,31 @@ int REx::Program::get_padding_byte_length(AST *ast) {
         }
     }
 
-    return table[ast->type] + padding;
+    return table[(BYTE)ast->type] + padding;
 }
 
 
 void REx::Program::marshal_program(int16_t pos, REx::Pro_Tree *pro_tree) {
     switch (pro_tree->type) {
-        case AST::OR:
+        case Nodetype::OR:
             marshal_or(pos, pro_tree);
             break;
-        case AST::STAR:
+        case Nodetype::STAR:
             marshal_star(pos, pro_tree);
             break;
-        case AST::PLUS:
+        case Nodetype::PLUS:
             marshal_plus(pos, pro_tree);
             break;
-        case AST::OPTION:
+        case Nodetype::OPTION:
             marshal_option(pos, pro_tree);
             break;
-        case AST::AND:
+        case Nodetype::AND:
             marshal_and(pos, pro_tree);
             break;
-        case AST::REPEAT:
+        case Nodetype::REPEAT:
             marshal_repeat(pos, pro_tree);
             break;
-        case AST::CHARSET:
+        case Nodetype::CHARSET:
             marshal_charset(pos, pro_tree);
             break;
     }
@@ -162,13 +162,13 @@ void REx::Program::marshal_program(int16_t pos, REx::Pro_Tree *pro_tree) {
  * ------------------------------------------------------------------------
  * */
 void REx::Program::marshal_or(int16_t pos, Pro_Tree *pro_tree) {
-    marshal_instruction(pos, (BYTE)Instructions::split);
+    marshal_instruction(pos, (BYTE)Instructions::Split);
     marshal_int16(pos + 1, 1 + 2 + 2);
     marshal_int16(pos + 1 + 2, 1 + 2 + 2 + pro_tree->left->length + 1 + 2);
 
     marshal_program(pos + 1 + 2 + 2, pro_tree->left);
 
-    marshal_instruction(pos + 1 + 2 + 2 + pro_tree->left->length, (BYTE)Instructions::jmp);
+    marshal_instruction(pos + 1 + 2 + 2 + pro_tree->left->length, (BYTE)Instructions::Jmp);
     marshal_int16(pos + 1 + 2 + 2 + pro_tree->left->length + 1, 1 + 2 + pro_tree->right->length);
 
     marshal_program(pos + 1 + 2 + 2 + pro_tree->left->length + 1 + 2, pro_tree->right);
@@ -183,12 +183,12 @@ void REx::Program::marshal_or(int16_t pos, Pro_Tree *pro_tree) {
  * ---------------------------------------------------------
  * */
 void REx::Program::marshal_star(int16_t pos, Pro_Tree *pro_tree) {
-    marshal_instruction(pos, (BYTE)Instructions::split);
+    marshal_instruction(pos, (BYTE)Instructions::Split);
     marshal_int16(pos + 1, 1 + 2 + 2);
     marshal_int16(pos + 1 + 2, 1 + 2 + 2 + pro_tree->child->length + 1 + 2);
 
     marshal_program(pos + 1 + 2 + 2, pro_tree->child);
-    marshal_instruction(pos + 1 + 2 + 2 + pro_tree->child->length, (BYTE)Instructions::jmp);
+    marshal_instruction(pos + 1 + 2 + 2 + pro_tree->child->length, (BYTE)Instructions::Jmp);
     marshal_int16(pos + 1 + 2 + 2 + pro_tree->child->length + 1, -(1 + 2 + 2 + pro_tree->child->length));
 }
 
@@ -203,7 +203,7 @@ void REx::Program::marshal_star(int16_t pos, Pro_Tree *pro_tree) {
 void REx::Program::marshal_plus(int16_t pos, Pro_Tree *pro_tree) {
     marshal_program(pos, pro_tree->child);
 
-    marshal_instruction(pos + pro_tree->child->length, (BYTE)Instructions::split);
+    marshal_instruction(pos + pro_tree->child->length, (BYTE)Instructions::Split);
     marshal_int16(pos + pro_tree->child->length + 1, -pro_tree->child->length);
     marshal_int16(pos + pro_tree->child->length + 1 + 2, 1 + 2 + 2);
 }
@@ -218,7 +218,7 @@ void REx::Program::marshal_plus(int16_t pos, Pro_Tree *pro_tree) {
  * --------------------------------------------
  * */
 void REx::Program::marshal_option(int16_t pos, Pro_Tree *pro_tree) {
-    marshal_instruction(pos, (BYTE)Instructions::split);
+    marshal_instruction(pos, (BYTE)Instructions::Split);
     marshal_int16(pos + 1, 1 + 2 + 2);
     marshal_int16(pos + 1 + 2, 1 + 2 + 2 + pro_tree->child->length);
 
@@ -250,35 +250,35 @@ void REx::Program::marshal_and(int16_t pos, Pro_Tree *pro_tree) {
  */
 void REx::Program::marshal_repeat(int16_t pos, REx::Pro_Tree *pro_tree) {
     if (pro_tree->low != 0) {
-        marshal_instruction(pos, (BYTE)Instructions::loop);
+        marshal_instruction(pos, (BYTE)Instructions::Loop);
         marshal_int16(pos + 1, pro_tree->low);
 
         marshal_program(pos + 1 + 2, pro_tree->child);
 
-        marshal_instruction(pos + 1 + 2 + pro_tree->child->length, (BYTE)Instructions::endloop);
+        marshal_instruction(pos + 1 + 2 + pro_tree->child->length, (BYTE)Instructions::Endloop);
         marshal_int16(pos + 1 + 2 + pro_tree->child->length + 1, -(pro_tree->child->length));
 
         pos += (1 + 2 + pro_tree->child->length + 1 + 2);
     }
 
     if (pro_tree->high == INT_MAX) {
-        marshal_instruction(pos, (BYTE)Instructions::split);
+        marshal_instruction(pos, (BYTE)Instructions::Split);
         marshal_int16(pos + 1, 1 + 2 + 2);
         marshal_int16(pos + 1 + 2, 1 + 2 + 2 + pro_tree->child->length + 1 + 2);
 
         marshal_program(pos + 1 + 2 + 2, pro_tree->child);
-        marshal_instruction(pos + 1 + 2 + 2 + pro_tree->child->length, (BYTE)Instructions::jmp);
+        marshal_instruction(pos + 1 + 2 + 2 + pro_tree->child->length, (BYTE)Instructions::Jmp);
         marshal_int16(pos + 1 + 2 + 2 + pro_tree->child->length + 1, -(1 + 2 + 2 + pro_tree->child->length));
     } else if (pro_tree->high != pro_tree->low) {
-        marshal_instruction(pos, (BYTE)Instructions::loop);
+        marshal_instruction(pos, (BYTE)Instructions::Loop);
         marshal_int16(pos + 1, pro_tree->high - pro_tree->low);
-        marshal_instruction(pos + 1 + 2, (BYTE)Instructions::split);
+        marshal_instruction(pos + 1 + 2, (BYTE)Instructions::Split);
         marshal_int16(pos + 1 + 2 + 1, 1 + 2 + 2);
         marshal_int16(pos + 1 + 2 + 1 + 2, 1 + 2 + 2 + pro_tree->child->length + 1 + 2);
 
         marshal_program(pos + 1 + 2 + 1 + 2 + 2, pro_tree->child);
 
-        marshal_instruction(pos + 1 + 2 + 1 + 2 + 2 + pro_tree->child->length, (BYTE)Instructions::endloop);
+        marshal_instruction(pos + 1 + 2 + 1 + 2 + 2 + pro_tree->child->length, (BYTE)Instructions::Endloop);
         marshal_int16(pos + 1 + 2 + 1 + 2 + 2 + pro_tree->child->length + 1, -(1 + 2 + 2 + pro_tree->child->length));
     }
 }

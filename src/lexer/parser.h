@@ -15,6 +15,7 @@ namespace REx {
     private:
         friend class Parser;
         friend class Fastre;
+
         explicit REstring(const std::string &pattern_) : pattern(pattern_) {}
 
         void remove_prefix(int count = 1) {
@@ -62,8 +63,8 @@ namespace REx {
         REstring& restring;
         const std::unordered_set<char> UNHANDLED_CHAR = {'*', '+', '?', ')', '|',};
 
-        static AST * collapse_unary_operator(AST *child, AST::NODETYPE type);
-        static AST * collapse_binary_operator(AST *left, AST* right, AST::NODETYPE type);
+        static AST * collapse_unary_operator(AST *child, Nodetype type);
+        static AST * collapse_binary_operator(AST *left, AST* right, Nodetype type);
 
         static bool is_HEX_digital(const char c) {
             return ('0' <= c && c <= '9') || ('a' <= c && c <= 'f') || ('A' <= c && c <= 'F');

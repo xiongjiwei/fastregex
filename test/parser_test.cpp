@@ -95,7 +95,7 @@ TEST_CASE("chars() method should build correct AST by given regular expression")
                 CHECK(item->low == 0);
                 CHECK(item->left == nullptr);
                 CHECK(item->right == nullptr);
-                CHECK(item->type == REx::AST::CHARSET);
+                CHECK(item->type == REx::Nodetype::CHARSET);
                 delete item;
             }
         }
@@ -117,7 +117,7 @@ TEST_CASE("charset() method should build correct AST by given regular expression
                 test_charset['b'] = true;
                 test_charset['c'] = true;
                 CHECK(test_ret->get_charset() == test_charset);
-                CHECK(test_ret->type == REx::AST::CHARSET);
+                CHECK(test_ret->type == REx::Nodetype::CHARSET);
             }
         }
 
@@ -134,7 +134,7 @@ TEST_CASE("charset() method should build correct AST by given regular expression
                     test_charset[i] = true;
                 }
                 CHECK(test_ret->get_charset() == test_charset);
-                CHECK(test_ret->type == REx::AST::CHARSET);
+                CHECK(test_ret->type == REx::Nodetype::CHARSET);
             }
         }
 
@@ -161,7 +161,7 @@ TEST_CASE("charset() method should build correct AST by given regular expression
                 test_charset['-'] = true;
 
                 CHECK(test_ret->get_charset() == test_charset);
-                CHECK(test_ret->type == REx::AST::CHARSET);
+                CHECK(test_ret->type == REx::Nodetype::CHARSET);
             }
         }
 
@@ -180,7 +180,7 @@ TEST_CASE("charset() method should build correct AST by given regular expression
                 test_charset[')'] = true;
 
                 CHECK(test_ret->get_charset() == test_charset);
-                CHECK(test_ret->type == REx::AST::CHARSET);
+                CHECK(test_ret->type == REx::Nodetype::CHARSET);
             }
         }
 
@@ -196,7 +196,7 @@ TEST_CASE("charset() method should build correct AST by given regular expression
                 }
                 test_charset.flip();
                 CHECK(test_ret->get_charset() == test_charset);
-                CHECK(test_ret->type == REx::AST::CHARSET);
+                CHECK(test_ret->type == REx::Nodetype::CHARSET);
             }
         }
 
@@ -233,7 +233,7 @@ TEST_CASE("group() method should build correct AST by given regular expression")
             THEN("should return a charset type AST with a") {
                 std::bitset<256> test_charset;
                 test_charset['a'] = true;
-                CHECK(test_ret->type == REx::AST::CHARSET);
+                CHECK(test_ret->type == REx::Nodetype::CHARSET);
                 CHECK(test_ret->get_charset() == test_charset);
             }
         }
@@ -242,7 +242,7 @@ TEST_CASE("group() method should build correct AST by given regular expression")
             string = "()";
             auto test_ret = parser.group();
             THEN("should return a empty AST") {
-                CHECK(test_ret->type == REx::AST::CHARSET);
+                CHECK(test_ret->type == REx::Nodetype::CHARSET);
                 CHECK(test_ret->get_charset().none());
             }
         }
@@ -270,7 +270,7 @@ TEST_CASE("factor() method should build correct AST by given regular expression"
             THEN("should return a charset type AST with a") {
                 std::bitset<256> test_charset;
                 test_charset['a'] = true;
-                CHECK(test_ret->type == REx::AST::CHARSET);
+                CHECK(test_ret->type == REx::Nodetype::CHARSET);
                 CHECK(test_ret->get_charset() == test_charset);
             }
         }
@@ -284,7 +284,7 @@ TEST_CASE("factor() method should build correct AST by given regular expression"
                 test_charset['a'] = true;
                 test_charset['b'] = true;
                 test_charset['c'] = true;
-                CHECK(test_ret->type == REx::AST::CHARSET);
+                CHECK(test_ret->type == REx::Nodetype::CHARSET);
                 CHECK(test_ret->get_charset() == test_charset);
             }
         }
@@ -295,7 +295,7 @@ TEST_CASE("factor() method should build correct AST by given regular expression"
             THEN("should return a charset type AST with a") {
                 std::bitset<256> test_charset;
                 test_charset['a'] = true;
-                CHECK(test_ret->type == REx::AST::CHARSET);
+                CHECK(test_ret->type == REx::Nodetype::CHARSET);
                 CHECK(test_ret->get_charset() == test_charset);
             }
         }
@@ -322,8 +322,8 @@ TEST_CASE("repeat() method should build correct AST by given regular expression"
             string = "a*";
             auto test_ret = parser.repeat();
             THEN("should return a star type AST") {
-                CHECK(test_ret->type == REx::AST::STAR);
-                CHECK(test_ret->child->type == REx::AST::CHARSET);
+                CHECK(test_ret->type == REx::Nodetype::STAR);
+                CHECK(test_ret->child->type == REx::Nodetype::CHARSET);
                 CHECK(0 == restring.size());
             }
         }
@@ -332,10 +332,10 @@ TEST_CASE("repeat() method should build correct AST by given regular expression"
             string = "b{2}";
             auto test_ret = parser.repeat();
             THEN("should return a repeat type AST") {
-                CHECK(test_ret->type == REx::AST::REPEAT);
+                CHECK(test_ret->type == REx::Nodetype::REPEAT);
                 CHECK(test_ret->low == 2);
                 CHECK(test_ret->high == 2);
-                CHECK(test_ret->child->type == REx::AST::CHARSET);
+                CHECK(test_ret->child->type == REx::Nodetype::CHARSET);
             }
         }
 
@@ -343,10 +343,10 @@ TEST_CASE("repeat() method should build correct AST by given regular expression"
             string = "b{2,}";
             auto test_ret = parser.repeat();
             THEN("should return a repeat type AST") {
-                CHECK(test_ret->type == REx::AST::REPEAT);
+                CHECK(test_ret->type == REx::Nodetype::REPEAT);
                 CHECK(test_ret->low == 2);
                 CHECK(test_ret->high == INT_MAX);
-                CHECK(test_ret->child->type == REx::AST::CHARSET);
+                CHECK(test_ret->child->type == REx::Nodetype::CHARSET);
             }
         }
 
@@ -354,10 +354,10 @@ TEST_CASE("repeat() method should build correct AST by given regular expression"
             string = "b{2,5}";
             auto test_ret = parser.repeat();
             THEN("should return a repeat type AST") {
-                CHECK(test_ret->type == REx::AST::REPEAT);
+                CHECK(test_ret->type == REx::Nodetype::REPEAT);
                 CHECK(test_ret->low == 2);
                 CHECK(test_ret->high == 5);
-                CHECK(test_ret->child->type == REx::AST::CHARSET);
+                CHECK(test_ret->child->type == REx::Nodetype::CHARSET);
             }
         }
 
@@ -374,7 +374,7 @@ TEST_CASE("repeat() method should build correct AST by given regular expression"
             string = "b{,5}";
             auto test_ret = parser.repeat();
             THEN("should return a repeat type AST") {
-                CHECK(test_ret->type == REx::AST::CHARSET);
+                CHECK(test_ret->type == REx::Nodetype::CHARSET);
                 CHECK(restring.size() == 4);
             }
         }
@@ -383,7 +383,7 @@ TEST_CASE("repeat() method should build correct AST by given regular expression"
             string = "b{1,5";
             auto test_ret = parser.repeat();
             THEN("should return a repeat type AST") {
-                CHECK(test_ret->type == REx::AST::CHARSET);
+                CHECK(test_ret->type == REx::Nodetype::CHARSET);
                 CHECK(restring.size() == 4);
             }
         }
@@ -392,7 +392,7 @@ TEST_CASE("repeat() method should build correct AST by given regular expression"
             string = "b{-,5}";
             auto test_ret = parser.repeat();
             THEN("should return a repeat type AST") {
-                CHECK(test_ret->type == REx::AST::CHARSET);
+                CHECK(test_ret->type == REx::Nodetype::CHARSET);
                 CHECK(restring.size() == 5);
             }
         }
@@ -410,14 +410,14 @@ TEST_CASE("term() method should build correct AST by given regular expression") 
             auto test_ret = parser.term();
 
             THEN("should return a AST") {
-                REx::AST *correct_ast = new REx::AST(REx::AST::AND);
-                correct_ast->left = new REx::AST(REx::AST::AND);
-                correct_ast->left->left = new REx::AST(REx::AST::CHARSET);
+                REx::AST *correct_ast = new REx::AST(REx::Nodetype::AND);
+                correct_ast->left = new REx::AST(REx::Nodetype::AND);
+                correct_ast->left->left = new REx::AST(REx::Nodetype::CHARSET);
                 correct_ast->left->left->add_character('a');
-                correct_ast->left->right = new REx::AST(REx::AST::STAR);
-                correct_ast->left->right->child = new REx::AST(REx::AST::CHARSET);
+                correct_ast->left->right = new REx::AST(REx::Nodetype::STAR);
+                correct_ast->left->right->child = new REx::AST(REx::Nodetype::CHARSET);
                 correct_ast->left->right->child->add_character('b');
-                correct_ast->right = new REx::AST(REx::AST::CHARSET);
+                correct_ast->right = new REx::AST(REx::Nodetype::CHARSET);
                 correct_ast->right->add_character('c');
                 CHECK((*test_ret == *correct_ast));
                 CHECK(restring.size() == 0);
@@ -429,14 +429,14 @@ TEST_CASE("term() method should build correct AST by given regular expression") 
             auto test_ret = parser.term();
 
             THEN("should return a AST") {
-                REx::AST *correct_ast = new REx::AST(REx::AST::AND);
-                correct_ast->left = new REx::AST(REx::AST::AND);
-                correct_ast->left->left = new REx::AST(REx::AST::CHARSET);
+                REx::AST *correct_ast = new REx::AST(REx::Nodetype::AND);
+                correct_ast->left = new REx::AST(REx::Nodetype::AND);
+                correct_ast->left->left = new REx::AST(REx::Nodetype::CHARSET);
                 correct_ast->left->left->add_character('a');
-                correct_ast->left->right = new REx::AST(REx::AST::STAR);
-                correct_ast->left->right->child = new REx::AST(REx::AST::CHARSET);
+                correct_ast->left->right = new REx::AST(REx::Nodetype::STAR);
+                correct_ast->left->right->child = new REx::AST(REx::Nodetype::CHARSET);
                 correct_ast->left->right->child->add_character('b');
-                correct_ast->right = new REx::AST(REx::AST::CHARSET);
+                correct_ast->right = new REx::AST(REx::Nodetype::CHARSET);
                 correct_ast->right->add_character('c');
                 CHECK((*test_ret == *correct_ast));
                 CHECK(restring.size() == 1);
@@ -465,48 +465,48 @@ TEST_CASE("exper() method should build correct AST by given regular expression")
             auto test_ret = parser.exper();
 
             THEN("should return a AST") {
-                REx::AST *correct_ast = new REx::AST(REx::AST::AND);
-                REx::AST *repeat12 = new REx::AST(REx::AST::REPEAT);
+                REx::AST *correct_ast = new REx::AST(REx::Nodetype::AND);
+                REx::AST *repeat12 = new REx::AST(REx::Nodetype::REPEAT);
 
                 repeat12->low = 1;
                 repeat12->high = 2;
-                repeat12->left = new REx::AST(REx::AST::OR);
-                repeat12->left->left = new REx::AST(REx::AST::OR);
-                repeat12->left->left->left = new REx::AST(REx::AST::CHARSET);
+                repeat12->left = new REx::AST(REx::Nodetype::OR);
+                repeat12->left->left = new REx::AST(REx::Nodetype::OR);
+                repeat12->left->left->left = new REx::AST(REx::Nodetype::CHARSET);
                 repeat12->left->left->left->add_character('a');
-                repeat12->left->left->right = new REx::AST(REx::AST::STAR);
-                repeat12->left->left->right->child = new REx::AST(REx::AST::CHARSET);
+                repeat12->left->left->right = new REx::AST(REx::Nodetype::STAR);
+                repeat12->left->left->right->child = new REx::AST(REx::Nodetype::CHARSET);
                 repeat12->left->left->right->child->add_character('b');
-                repeat12->left->right = new REx::AST(REx::AST::AND);
-                repeat12->left->right->left = new REx::AST(REx::AST::PLUS);
-                repeat12->left->right->left->child = new REx::AST(REx::AST::CHARSET);
+                repeat12->left->right = new REx::AST(REx::Nodetype::AND);
+                repeat12->left->right->left = new REx::AST(REx::Nodetype::PLUS);
+                repeat12->left->right->left->child = new REx::AST(REx::Nodetype::CHARSET);
                 repeat12->left->right->left->child->add_character('c');
-                repeat12->left->right->right = new REx::AST(REx::AST::OPTION);
-                repeat12->left->right->right->child = new REx::AST(REx::AST::CHARSET);
+                repeat12->left->right->right = new REx::AST(REx::Nodetype::OPTION);
+                repeat12->left->right->right->child = new REx::AST(REx::Nodetype::CHARSET);
                 repeat12->left->right->right->child->add_character('d');
 
-                REx::AST *andatoz = new REx::AST(REx::AST::AND);
-                andatoz->left = new REx::AST(REx::AST::AND);
-                andatoz->left->left = new REx::AST(REx::AST::AND);
-                andatoz->left->right = new REx::AST(REx::AST::CHARSET);
+                REx::AST *andatoz = new REx::AST(REx::Nodetype::AND);
+                andatoz->left = new REx::AST(REx::Nodetype::AND);
+                andatoz->left->left = new REx::AST(REx::Nodetype::AND);
+                andatoz->left->right = new REx::AST(REx::Nodetype::CHARSET);
                 andatoz->left->right->add_character('}');
-                andatoz->left->left->left = new REx::AST(REx::AST::CHARSET);
+                andatoz->left->left->left = new REx::AST(REx::Nodetype::CHARSET);
                 andatoz->left->left->left->add_character('a');
                 andatoz->left->left->right = repeat12;
-                andatoz->right = new REx::AST(REx::AST::STAR);
-                andatoz->right->child = new REx::AST(REx::AST::CHARSET);
+                andatoz->right = new REx::AST(REx::Nodetype::STAR);
+                andatoz->right->child = new REx::AST(REx::Nodetype::CHARSET);
                 for (char i = 'a'; i <= 'z'; ++i) {
                     andatoz->right->child->add_character(i);
                 }
 
-                correct_ast->left = new REx::AST(REx::AST::AND);
-                correct_ast->left->left = new REx::AST(REx::AST::AND);
+                correct_ast->left = new REx::AST(REx::Nodetype::AND);
+                correct_ast->left->left = new REx::AST(REx::Nodetype::AND);
                 correct_ast->left->left->left = andatoz;
-                correct_ast->left->left->right = new REx::AST(REx::AST::CHARSET);
+                correct_ast->left->left->right = new REx::AST(REx::Nodetype::CHARSET);
                 correct_ast->left->left->right->add_character(0);
-                correct_ast->left->right = new REx::AST(REx::AST::CHARSET);
+                correct_ast->left->right = new REx::AST(REx::Nodetype::CHARSET);
                 correct_ast->left->right->add_character('}');
-                correct_ast->right = new REx::AST(REx::AST::CHARSET);
+                correct_ast->right = new REx::AST(REx::Nodetype::CHARSET);
                 correct_ast->right->add_character(']');
 
                 CHECK((*test_ret == *correct_ast));
@@ -519,9 +519,9 @@ TEST_CASE("exper() method should build correct AST by given regular expression")
             auto test_ret = parser.exper();
 
             THEN("should return a AST with double star") {
-                REx::AST *correct_ast = new REx::AST(REx::AST::STAR);
-                correct_ast->child = new REx::AST(REx::AST::STAR);
-                correct_ast->child->child = new REx::AST(REx::AST::CHARSET);
+                REx::AST *correct_ast = new REx::AST(REx::Nodetype::STAR);
+                correct_ast->child = new REx::AST(REx::Nodetype::STAR);
+                correct_ast->child->child = new REx::AST(REx::Nodetype::CHARSET);
                 correct_ast->child->child->add_character('a');
                 CHECK((*test_ret == *correct_ast));
                 CHECK(restring.size() == 0);
@@ -533,8 +533,8 @@ TEST_CASE("exper() method should build correct AST by given regular expression")
             auto test_ret = parser.exper();
 
             THEN("") {
-                REx::AST *correct_ast = new REx::AST(REx::AST::STAR);
-                correct_ast->child = new REx::AST(REx::AST::CHARSET);
+                REx::AST *correct_ast = new REx::AST(REx::Nodetype::STAR);
+                correct_ast->child = new REx::AST(REx::Nodetype::CHARSET);
                 for (char i = '0'; i <= '9'; ++i) {
                     correct_ast->child->add_character(i);
                 }
@@ -548,18 +548,18 @@ TEST_CASE("exper() method should build correct AST by given regular expression")
             auto test_ret = parser.exper();
 
             THEN("should return a AST with double star") {
-                REx::AST *correct_ast = new REx::AST(REx::AST::STAR);
-                correct_ast->child = new REx::AST(REx::AST::AND);
-                correct_ast->child->left = new REx::AST(REx::AST::AND);
-                correct_ast->child->left->left = new REx::AST(REx::AST::CHARSET);
+                REx::AST *correct_ast = new REx::AST(REx::Nodetype::STAR);
+                correct_ast->child = new REx::AST(REx::Nodetype::AND);
+                correct_ast->child->left = new REx::AST(REx::Nodetype::AND);
+                correct_ast->child->left->left = new REx::AST(REx::Nodetype::CHARSET);
                 correct_ast->child->left->left->add_character('a');
-                correct_ast->child->left->right = new REx::AST(REx::AST::CHARSET);
+                correct_ast->child->left->right = new REx::AST(REx::Nodetype::CHARSET);
                 correct_ast->child->left->right->add_character('b');
-                correct_ast->child->right = new REx::AST(REx::AST::STAR);
-                correct_ast->child->right->child = new REx::AST(REx::AST::OR);
-                correct_ast->child->right->child->left = new REx::AST(REx::AST::CHARSET);
+                correct_ast->child->right = new REx::AST(REx::Nodetype::STAR);
+                correct_ast->child->right->child = new REx::AST(REx::Nodetype::OR);
+                correct_ast->child->right->child->left = new REx::AST(REx::Nodetype::CHARSET);
                 correct_ast->child->right->child->left->add_character('a');
-                correct_ast->child->right->child->right = new REx::AST(REx::AST::CHARSET);
+                correct_ast->child->right->child->right = new REx::AST(REx::Nodetype::CHARSET);
                 correct_ast->child->right->child->right->add_character('b');
                 CHECK((*test_ret == *correct_ast));
                 CHECK(restring.size() == 0);

@@ -11,20 +11,12 @@ namespace REx {
 
     class AST {
     public:
-        enum NODETYPE {
-            OR,
-            STAR,
-            PLUS,
-            OPTION,
-            AND,
-            REPEAT,
-            CHARSET
-        };
+
 
     private:
         friend class Program;
         friend class Parser;
-        explicit AST(const NODETYPE type_) : type(type_) {}
+        explicit AST(const Nodetype type_) : type(type_) {}
 
         ~AST() {
             delete left;
@@ -33,7 +25,7 @@ namespace REx {
             right = nullptr;
         }
 
-        NODETYPE type;
+        Nodetype type;
         AST *left = nullptr;
         AST *right = nullptr;
         AST*& child = left;

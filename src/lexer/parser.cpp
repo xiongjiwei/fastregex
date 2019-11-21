@@ -38,7 +38,7 @@ REx::AST *REx::Parser::exper() {
             delete root;
             return nullptr;
         }
-        root = collapse_binary_operator(root, term(), AST::OR);
+        root = collapse_binary_operator(root, term(), Nodetype::OR);
     }
     return root;
 }
@@ -47,7 +47,7 @@ REx::AST *REx::Parser::exper() {
 REx::AST *REx::Parser::term() {
     AST *root = repeat();
     while (restring.size() > 0 && restring[0] != '|' && restring[0] != ')' && root != nullptr) {
-        root = collapse_binary_operator(root, repeat(), AST::AND);
+        root = collapse_binary_operator(root, repeat(), Nodetype::AND);
     }
 
     return root;
@@ -65,13 +65,13 @@ REx::AST *REx::Parser::repeat() {
     AST *root = factor();
     if (restring.size() > 0 && root != nullptr && error_code.none()) {
         if (restring[0] == '*') {
-            root = collapse_unary_operator(root, AST::STAR);
+            root = collapse_unary_operator(root, Nodetype::STAR);
             restring.remove_prefix();
         } else if (restring[0] == '?') {
-            root = collapse_unary_operator(root, AST::OPTION);
+            root = collapse_unary_operator(root, Nodetype::OPTION);
             restring.remove_prefix();
         } else if (restring[0] == '+') {
-            root = collapse_unary_operator(root, AST::PLUS);
+            root = collapse_unary_operator(root, Nodetype::PLUS);
             restring.remove_prefix();
         } else if (restring[0] == '{') {
             root = maybe_repeat(root);
@@ -107,7 +107,7 @@ REx::AST *REx::Parser::maybe_repeat(AST *root) {
             } else {
                 high = low;
                 restring.remove_prefix();
-                auto father = new AST(AST::REPEAT);
+                auto father = new AST(Nodetype::REPEAT);
                 father->low = low;
                 father->high = high;
                 father->child = root;
@@ -133,7 +133,7 @@ REx::AST *REx::Parser::maybe_repeat(AST *root) {
                 return nullptr;
             }
             restring.remove_prefix();
-            auto father = new AST(AST::REPEAT);
+            auto father = new AST(Nodetype::REPEAT);
             father->low = low;
             father->high = high;
             father->child = root;
@@ -170,7 +170,7 @@ REx::AST *REx::Parser::group() {
         }
 
         if (root == nullptr && error_code.none()) {
-            root = new AST(AST::CHARSET);
+            root = new AST(Nodetype::CHARSET);
         }
         restring.remove_prefix();
     } else {
@@ -182,7 +182,7 @@ REx::AST *REx::Parser::group() {
 REx::AST *REx::Parser::charset() {
     AST *root = nullptr;
     if (restring.size() >= 2) {
-        root = new AST(AST::CHARSET);
+        root = new AST(Nodetype::CHARSET);
         restring.remove_prefix();
         bool is_negative = false;
         if (restring[0] == '^') {
@@ -255,7 +255,7 @@ REx::AST *REx::Parser::charset() {
 REx::AST *REx::Parser::chars() {
     AST *root = nullptr;
     if (restring.size() > 0 && UNHANDLED_CHAR.find(restring[0]) == UNHANDLED_CHAR.end()) {
-        root = new AST(AST::NODETYPE::CHARSET);
+        root = new AST(Nodetype::CHARSET);
         if (restring[0] == '\\') {
             auto code_set = process_escape();
             if (code_set != nullptr) {
@@ -280,7 +280,7 @@ REx::AST *REx::Parser::chars() {
     return root;
 }
 
-REx::AST *REx::Parser::collapse_unary_operator(AST *child, AST::NODETYPE type) {
+REx::AST *REx::Parser::collapse_unary_operator(AST *child, Nodetype type) {
     if (child == nullptr) {
         return nullptr;
     }
@@ -290,7 +290,7 @@ REx::AST *REx::Parser::collapse_unary_operator(AST *child, AST::NODETYPE type) {
     return root;
 }
 
-REx::AST *REx::Parser::collapse_binary_operator(AST *left, AST *right, AST::NODETYPE type) {
+REx::AST *REx::Parser::collapse_binary_operator(AST *left, AST *right, Nodetype type) {
     if (left == nullptr || right == nullptr) {
         delete left;
         delete right;

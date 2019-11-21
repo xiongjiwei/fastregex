@@ -13,7 +13,7 @@ namespace REx {
 
     class Pro_Tree {
     public:
-        explicit Pro_Tree(AST::NODETYPE type) {
+        explicit Pro_Tree(Nodetype type) {
             this->type = type;
         };
 
@@ -37,7 +37,7 @@ namespace REx {
         }
         size_t length = 0;
         BYTE *bytecode = nullptr;
-        AST::NODETYPE type;
+        Nodetype type;
         Pro_Tree *left = nullptr;
         Pro_Tree *&child = left;
         Pro_Tree *right = nullptr;

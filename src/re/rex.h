@@ -9,22 +9,27 @@ namespace REx {
     typedef int vmregister;
 
     enum class Instructions: BYTE {
-        character   = 0x01,         //character char<1>         :whether sp == char
-        split       = 0x02,         //split L1<2>, L2<2>        :new thread  pc = L1, pc = L2
-        jmp         = 0x03,         //jmp L<2>                  :jump to L
+        Character   = 0x01,         //character char<1>         :whether sp == char
+        Split       = 0x02,         //split L1<2>, L2<2>        :new thread  pc = L1, pc = L2
+        Jmp         = 0x03,         //jmp L<2>                  :jump to L
 
-        oneof       = 0x04,         //oneof set<32>             :sp in set
-        loopch      = 0x05,         //loop char<1> times<2>     :loop char n times
+        Oneof       = 0x04,         //oneof set<32>             :sp in set
+        Loopch      = 0x05,         //loop char<1> times<2>     :loop char n times
 
-        loop        = 0x06,         //loop times<2>             :loop instructions
-        endloop     = 0x07,         //endloop L1<2>             :endloop sign
+        Loop        = 0x06,         //loop times<2>             :loop instructions
+        Endloop     = 0x07,         //endloop L1<2>             :endloop sign
 
-        match       = 0x00,         //match                     :end sign
+        Match       = 0x00,         //match                     :end sign
     };
 
-    enum class Token_type:BYTE {
-        character,
-        
+    enum class Nodetype:BYTE {
+        OR,
+        STAR,
+        PLUS,
+        OPTION,
+        AND,
+        REPEAT,
+        CHARSET
     };
 
     template<size_t N>
