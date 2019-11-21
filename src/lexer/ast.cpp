@@ -84,19 +84,19 @@ void REx::AST::optimize_AND() {
 }
 
 void REx::AST::optimize_REPEAT() {
-    if (this->child->type == REx::AST::STAR) {
+    if (this->child->type == REx::AST::STAR) {      //a*{m,n} --> a*
         delete_child();
 
         this->type = REx::AST::STAR;
         this->low = 0;
         this->high = 0;
-    } else if (this->child->type == REx::AST::PLUS) {
+    } else if (this->child->type == REx::AST::PLUS) {   //a+{m,n} --> a+
         delete_child();
 
         this->type = REx::AST::PLUS;
         this->low = 0;
         this->high = 0;
-    } else if (this->child->type == REx::AST::OPTION) {
+    } else if (this->child->type == REx::AST::OPTION) { //a?{m,n} --> a{0,n}
         delete_child();
 
         this->type = REx::AST::REPEAT;
