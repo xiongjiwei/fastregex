@@ -33,18 +33,26 @@ namespace REx {
             right = nullptr;
         }
 
-        void add_character(char ch) {
-            this->charset[ch] = true;
-        }
-
+        NODETYPE type;
         AST *left = nullptr;
         AST *right = nullptr;
         AST*& child = left;
 
         int low = 0;
         int high = 0;
+        std::bitset<256> charset;
 
-        NODETYPE type;
+        void add_character(char ch) {
+            this->charset[ch] = true;
+        }
+
+        std::bitset<256> & get_charset() {
+            return charset;
+        }
+
+        void set_charset_negative() {
+            this->charset.flip();
+        }
 
         bool operator==(AST &other) {
             return this->charset == other.charset &&
@@ -57,14 +65,6 @@ namespace REx {
         }
 
         AST *optimize();
-        void set_charset_negative() {
-            this->charset.flip();
-        }
-
-        std::bitset<256> & get_charset() {
-            return charset;
-        }
-        std::bitset<256> charset;
         bool is_valid();
 
         void optimize_OR();

@@ -35,7 +35,7 @@ REx::Pro_Tree *REx::Program::compile_charset(AST *ast) {
 
     if (charset.count() == 1) {
         leaf->init_bytecode(2);
-        leaf->set_bytecode_content(0, REx::INSTRUCTIONS::character);
+        leaf->set_bytecode_content(0, (BYTE)REx::Instructions::character);
         for (BYTE i = 0;; ++i) {
             if (charset.test(i)) {
                 leaf->set_bytecode_content(1, i);
@@ -44,7 +44,7 @@ REx::Pro_Tree *REx::Program::compile_charset(AST *ast) {
         }
     } else {
         leaf->init_bytecode(33);
-        leaf->set_bytecode_content(0, REx::INSTRUCTIONS::oneof);
+        leaf->set_bytecode_content(0, (BYTE)REx::Instructions::oneof);
         BYTE *bitset_to_byte = cast_to_byte(charset);
         leaf->set_bytecode_content(1, bitset_to_byte, 32);
         delete[] bitset_to_byte;
@@ -162,13 +162,13 @@ void REx::Program::marshal_program(int16_t pos, REx::Pro_Tree *pro_tree) {
  * ------------------------------------------------------------------------
  * */
 void REx::Program::marshal_or(int16_t pos, Pro_Tree *pro_tree) {
-    marshal_instruction(pos, INSTRUCTIONS::split);
+    marshal_instruction(pos, (BYTE)Instructions::split);
     marshal_int16(pos + 1, 1 + 2 + 2);
     marshal_int16(pos + 1 + 2, 1 + 2 + 2 + pro_tree->left->length + 1 + 2);
 
     marshal_program(pos + 1 + 2 + 2, pro_tree->left);
 
-    marshal_instruction(pos + 1 + 2 + 2 + pro_tree->left->length, INSTRUCTIONS::jmp);
+    marshal_instruction(pos + 1 + 2 + 2 + pro_tree->left->length, (BYTE)Instructions::jmp);
     marshal_int16(pos + 1 + 2 + 2 + pro_tree->left->length + 1, 1 + 2 + pro_tree->right->length);
 
     marshal_program(pos + 1 + 2 + 2 + pro_tree->left->length + 1 + 2, pro_tree->right);
@@ -183,12 +183,12 @@ void REx::Program::marshal_or(int16_t pos, Pro_Tree *pro_tree) {
  * ---------------------------------------------------------
  * */
 void REx::Program::marshal_star(int16_t pos, Pro_Tree *pro_tree) {
-    marshal_instruction(pos, INSTRUCTIONS::split);
+    marshal_instruction(pos, (BYTE)Instructions::split);
     marshal_int16(pos + 1, 1 + 2 + 2);
     marshal_int16(pos + 1 + 2, 1 + 2 + 2 + pro_tree->child->length + 1 + 2);
 
     marshal_program(pos + 1 + 2 + 2, pro_tree->child);
-    marshal_instruction(pos + 1 + 2 + 2 + pro_tree->child->length, INSTRUCTIONS::jmp);
+    marshal_instruction(pos + 1 + 2 + 2 + pro_tree->child->length, (BYTE)Instructions::jmp);
     marshal_int16(pos + 1 + 2 + 2 + pro_tree->child->length + 1, -(1 + 2 + 2 + pro_tree->child->length));
 }
 
@@ -203,7 +203,7 @@ void REx::Program::marshal_star(int16_t pos, Pro_Tree *pro_tree) {
 void REx::Program::marshal_plus(int16_t pos, Pro_Tree *pro_tree) {
     marshal_program(pos, pro_tree->child);
 
-    marshal_instruction(pos + pro_tree->child->length, INSTRUCTIONS::split);
+    marshal_instruction(pos + pro_tree->child->length, (BYTE)Instructions::split);
     marshal_int16(pos + pro_tree->child->length + 1, -pro_tree->child->length);
     marshal_int16(pos + pro_tree->child->length + 1 + 2, 1 + 2 + 2);
 }
@@ -218,7 +218,7 @@ void REx::Program::marshal_plus(int16_t pos, Pro_Tree *pro_tree) {
  * --------------------------------------------
  * */
 void REx::Program::marshal_option(int16_t pos, Pro_Tree *pro_tree) {
-    marshal_instruction(pos, INSTRUCTIONS::split);
+    marshal_instruction(pos, (BYTE)Instructions::split);
     marshal_int16(pos + 1, 1 + 2 + 2);
     marshal_int16(pos + 1 + 2, 1 + 2 + 2 + pro_tree->child->length);
 
@@ -250,35 +250,35 @@ void REx::Program::marshal_and(int16_t pos, Pro_Tree *pro_tree) {
  */
 void REx::Program::marshal_repeat(int16_t pos, REx::Pro_Tree *pro_tree) {
     if (pro_tree->low != 0) {
-        marshal_instruction(pos, INSTRUCTIONS::loop);
+        marshal_instruction(pos, (BYTE)Instructions::loop);
         marshal_int16(pos + 1, pro_tree->low);
 
         marshal_program(pos + 1 + 2, pro_tree->child);
 
-        marshal_instruction(pos + 1 + 2 + pro_tree->child->length, INSTRUCTIONS::endloop);
+        marshal_instruction(pos + 1 + 2 + pro_tree->child->length, (BYTE)Instructions::endloop);
         marshal_int16(pos + 1 + 2 + pro_tree->child->length + 1, -(pro_tree->child->length));
 
         pos += (1 + 2 + pro_tree->child->length + 1 + 2);
     }
 
     if (pro_tree->high == INT_MAX) {
-        marshal_instruction(pos, INSTRUCTIONS::split);
+        marshal_instruction(pos, (BYTE)Instructions::split);
         marshal_int16(pos + 1, 1 + 2 + 2);
         marshal_int16(pos + 1 + 2, 1 + 2 + 2 + pro_tree->child->length + 1 + 2);
 
         marshal_program(pos + 1 + 2 + 2, pro_tree->child);
-        marshal_instruction(pos + 1 + 2 + 2 + pro_tree->child->length, INSTRUCTIONS::jmp);
+        marshal_instruction(pos + 1 + 2 + 2 + pro_tree->child->length, (BYTE)Instructions::jmp);
         marshal_int16(pos + 1 + 2 + 2 + pro_tree->child->length + 1, -(1 + 2 + 2 + pro_tree->child->length));
     } else if (pro_tree->high != pro_tree->low) {
-        marshal_instruction(pos, INSTRUCTIONS::loop);
+        marshal_instruction(pos, (BYTE)Instructions::loop);
         marshal_int16(pos + 1, pro_tree->high - pro_tree->low);
-        marshal_instruction(pos + 1 + 2, INSTRUCTIONS::split);
+        marshal_instruction(pos + 1 + 2, (BYTE)Instructions::split);
         marshal_int16(pos + 1 + 2 + 1, 1 + 2 + 2);
         marshal_int16(pos + 1 + 2 + 1 + 2, 1 + 2 + 2 + pro_tree->child->length + 1 + 2);
 
         marshal_program(pos + 1 + 2 + 1 + 2 + 2, pro_tree->child);
 
-        marshal_instruction(pos + 1 + 2 + 1 + 2 + 2 + pro_tree->child->length, INSTRUCTIONS::endloop);
+        marshal_instruction(pos + 1 + 2 + 1 + 2 + 2 + pro_tree->child->length, (BYTE)Instructions::endloop);
         marshal_int16(pos + 1 + 2 + 1 + 2 + 2 + pro_tree->child->length + 1, -(1 + 2 + 2 + pro_tree->child->length));
     }
 }

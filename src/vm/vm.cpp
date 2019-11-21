@@ -22,36 +22,33 @@ int REx::Vm::do_match(int start_sp) {
 
 bool REx::Vm::run_thread(REx::Thread *thread) {
     while (thread->alive) {
-        switch (program[thread->PC]) {
-            case character:
+        switch ((Instructions) program[thread->PC]) {
+            case Instructions::character:
                 ins_character(thread);
                 break;
-            case jmp:
-                ins_jmp(thread);
-                break;
-            case split:
+            case Instructions::split:
                 ins_split(thread);
                 break;
-            case loopch:
-                ins_loopch(thread);
+            case Instructions::jmp:
+                ins_jmp(thread);
                 break;
-            case loop:
-                ins_loop(thread);
-                break;
-            case endloop:
-                ins_endloop(thread);
-                break;
-            case oneof:
+            case Instructions::oneof:
                 ins_oneof(thread);
                 break;
-            case match:
+            case Instructions::loopch:
+                ins_loopch(thread);
+                break;
+            case Instructions::loop:
+                ins_loop(thread);
+                break;
+            case Instructions::endloop:
+                ins_endloop(thread);
+                break;
+            case Instructions::match:
                 ins_match(thread);
                 return true;
-            default:
-                return false;
         }
     }
-
     return false;
 }
 

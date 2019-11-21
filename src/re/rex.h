@@ -8,7 +8,7 @@ namespace REx {
     typedef uint8_t BYTE;
     typedef int vmregister;
 
-    enum INSTRUCTIONS {
+    enum class Instructions: BYTE {
         character   = 0x01,         //character char<1>         :whether sp == char
         split       = 0x02,         //split L1<2>, L2<2>        :new thread  pc = L1, pc = L2
         jmp         = 0x03,         //jmp L<2>                  :jump to L
@@ -20,6 +20,11 @@ namespace REx {
         endloop     = 0x07,         //endloop L1<2>             :endloop sign
 
         match       = 0x00,         //match                     :end sign
+    };
+
+    enum class Token_type:BYTE {
+        character,
+        
     };
 
     template<size_t N>
