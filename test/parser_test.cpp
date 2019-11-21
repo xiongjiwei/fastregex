@@ -20,7 +20,7 @@ TEST_CASE("chars() method should build correct AST by given regular expression")
                 test_charset['f'] = true;
 
                 THEN("build a normal char AST") {
-                    CHECK(test_ast->get_charset() == test_charset);
+                    CHECK(test_ast->charset == test_charset);
                     results.push_back(test_ast);
                 }
             }
@@ -31,7 +31,7 @@ TEST_CASE("chars() method should build correct AST by given regular expression")
                 test_charset[')'] = true;
 
                 THEN("build a normal char AST") {
-                    CHECK(test_ast->get_charset() == test_charset);
+                    CHECK(test_ast->charset == test_charset);
                     results.push_back(test_ast);
                 }
             }
@@ -42,7 +42,7 @@ TEST_CASE("chars() method should build correct AST by given regular expression")
                 test_charset[04] = true;
 
                 THEN("build an otc code point AST") {
-                    CHECK(test_ast->get_charset() == test_charset);
+                    CHECK(test_ast->charset == test_charset);
                     results.push_back(test_ast);
                 }
             }
@@ -53,7 +53,7 @@ TEST_CASE("chars() method should build correct AST by given regular expression")
                 test_charset[0x0] = true;
 
                 THEN("build a 0 hex code point AST") {
-                    CHECK(test_ast->get_charset() == test_charset);
+                    CHECK(test_ast->charset == test_charset);
                     results.push_back(test_ast);
                 }
             }
@@ -64,7 +64,7 @@ TEST_CASE("chars() method should build correct AST by given regular expression")
                 test_charset[0x10] = true;
 
                 THEN("build a hex code point AST") {
-                    CHECK(test_ast->get_charset() == test_charset);
+                    CHECK(test_ast->charset == test_charset);
                     results.push_back(test_ast);
                 }
             }
@@ -75,7 +75,7 @@ TEST_CASE("chars() method should build correct AST by given regular expression")
                 test_charset.flip();
 
                 THEN("build an any char AST") {
-                    CHECK(test_ast->get_charset() == test_charset);
+                    CHECK(test_ast->charset == test_charset);
                     results.push_back(test_ast);
                 }
             }
@@ -116,7 +116,7 @@ TEST_CASE("charset() method should build correct AST by given regular expression
                 test_charset['a'] = true;
                 test_charset['b'] = true;
                 test_charset['c'] = true;
-                CHECK(test_ret->get_charset() == test_charset);
+                CHECK(test_ret->charset == test_charset);
                 CHECK(test_ret->type == REx::Nodetype::CHARSET);
             }
         }
@@ -133,7 +133,7 @@ TEST_CASE("charset() method should build correct AST by given regular expression
                 for (char i = 'A'; i <= 'Z'; ++i) {
                     test_charset[i] = true;
                 }
-                CHECK(test_ret->get_charset() == test_charset);
+                CHECK(test_ret->charset == test_charset);
                 CHECK(test_ret->type == REx::Nodetype::CHARSET);
             }
         }
@@ -160,7 +160,7 @@ TEST_CASE("charset() method should build correct AST by given regular expression
                 test_charset['A'] = true;
                 test_charset['-'] = true;
 
-                CHECK(test_ret->get_charset() == test_charset);
+                CHECK(test_ret->charset == test_charset);
                 CHECK(test_ret->type == REx::Nodetype::CHARSET);
             }
         }
@@ -179,7 +179,7 @@ TEST_CASE("charset() method should build correct AST by given regular expression
                 test_charset['-'] = true;
                 test_charset[')'] = true;
 
-                CHECK(test_ret->get_charset() == test_charset);
+                CHECK(test_ret->charset == test_charset);
                 CHECK(test_ret->type == REx::Nodetype::CHARSET);
             }
         }
@@ -195,7 +195,7 @@ TEST_CASE("charset() method should build correct AST by given regular expression
                     test_charset[i] = true;
                 }
                 test_charset.flip();
-                CHECK(test_ret->get_charset() == test_charset);
+                CHECK(test_ret->charset == test_charset);
                 CHECK(test_ret->type == REx::Nodetype::CHARSET);
             }
         }
@@ -234,7 +234,7 @@ TEST_CASE("group() method should build correct AST by given regular expression")
                 std::bitset<256> test_charset;
                 test_charset['a'] = true;
                 CHECK(test_ret->type == REx::Nodetype::CHARSET);
-                CHECK(test_ret->get_charset() == test_charset);
+                CHECK(test_ret->charset == test_charset);
             }
         }
 
@@ -243,7 +243,7 @@ TEST_CASE("group() method should build correct AST by given regular expression")
             auto test_ret = parser.group();
             THEN("should return a empty AST") {
                 CHECK(test_ret->type == REx::Nodetype::CHARSET);
-                CHECK(test_ret->get_charset().none());
+                CHECK(test_ret->charset.none());
             }
         }
 
@@ -271,7 +271,7 @@ TEST_CASE("factor() method should build correct AST by given regular expression"
                 std::bitset<256> test_charset;
                 test_charset['a'] = true;
                 CHECK(test_ret->type == REx::Nodetype::CHARSET);
-                CHECK(test_ret->get_charset() == test_charset);
+                CHECK(test_ret->charset == test_charset);
             }
         }
 
@@ -285,7 +285,7 @@ TEST_CASE("factor() method should build correct AST by given regular expression"
                 test_charset['b'] = true;
                 test_charset['c'] = true;
                 CHECK(test_ret->type == REx::Nodetype::CHARSET);
-                CHECK(test_ret->get_charset() == test_charset);
+                CHECK(test_ret->charset == test_charset);
             }
         }
 
@@ -296,7 +296,7 @@ TEST_CASE("factor() method should build correct AST by given regular expression"
                 std::bitset<256> test_charset;
                 test_charset['a'] = true;
                 CHECK(test_ret->type == REx::Nodetype::CHARSET);
-                CHECK(test_ret->get_charset() == test_charset);
+                CHECK(test_ret->charset == test_charset);
             }
         }
 

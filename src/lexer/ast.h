@@ -8,38 +8,59 @@
 #include "../re/rex.h"
 
 namespace REx {
+    class Data {
+    private:
+        friend class AST;
+        union {
+            std::bitset<256> charset = 0;
+            struct {
+                int low;
+                int high;
+            };
+        };
+
+        void add_character(char ch) {
+            this->charset[ch] = true;
+        }
+
+        void set_charset_negative() {
+            this->charset.flip();
+        }
+
+        bool operator==(Data &other) {
+            return true;
+        }
+    };
 
     class AST {
-    public:
-
-
     private:
         friend class Program;
         friend class Parser;
-        explicit AST(const Nodetype type_) : type(type_) {}
+        explicit AST(const Nodetype type_) : type(type_) {
+            if (type_ == Nodetype::REPEAT || type_ == Nodetype::CHARSET) {
+                value = new Data();
+            }
+        }
 
         ~AST() {
             delete left;
             delete right;
+            delete value;
             left = nullptr;
             right = nullptr;
+            value = nullptr;
         }
 
         Nodetype type;
         AST *left = nullptr;
         AST *right = nullptr;
         AST*& child = left;
+        Data *value = nullptr;
 
-        int low = 0;
-        int high = 0;
         std::bitset<256> charset;
 
         void add_character(char ch) {
             this->charset[ch] = true;
-        }
-
-        std::bitset<256> & get_charset() {
-            return charset;
         }
 
         void set_charset_negative() {
@@ -47,8 +68,8 @@ namespace REx {
         }
 
         bool operator==(AST &other) {
-            return this->charset == other.charset &&
-                   this->low == other.low && this->high == other.high &&
+            return (this->value == other.value ||
+                    (this->value != nullptr && other.value != nullptr && *(this->value) == *(other.value))) &&
                    this->type == other.type &&
                    (this->left == other.left ||
                     (this->left != nullptr && other.left != nullptr && *(left) == *(other.left))) &&
@@ -68,6 +89,17 @@ namespace REx {
 
         void delete_child();
     };
+
+
+
+
+    class AST_or : private AST {};
+    class AST_star : public AST {};
+    class AST_plus : public AST {};
+    class AST_option : public AST {};
+    class AST_and : public AST {};
+    class AST_repeat : public AST {};
+    class AST_charset : public AST {};
 }
 
 

@@ -88,19 +88,17 @@ void REx::AST::optimize_REPEAT() {
         delete_child();
 
         this->type = Nodetype::STAR;
-        this->low = 0;
-        this->high = 0;
+        delete value;
     } else if (this->child->type == Nodetype::PLUS) {   //a+{m,n} --> a+
         delete_child();
 
         this->type = Nodetype::PLUS;
-        this->low = 0;
-        this->high = 0;
+        delete value;
     } else if (this->child->type == Nodetype::OPTION) { //a?{m,n} --> a{0,n}
         delete_child();
 
         this->type = Nodetype::REPEAT;
-        this->low = 0;
+        this->value->low = 0;
     }
 }
 

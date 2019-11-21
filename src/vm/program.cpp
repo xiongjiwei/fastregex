@@ -26,7 +26,7 @@ void REx::Program::init_program(const Pro_Tree *pro_tree) {
 }
 
 REx::Pro_Tree *REx::Program::compile_charset(AST *ast) {
-    auto charset = ast->get_charset();
+    std::bitset<256> & charset = ast->charset;
     auto leaf = new Pro_Tree(ast->type);
 
     if (charset.none()) { //not possible
