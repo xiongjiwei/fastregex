@@ -128,7 +128,7 @@ TEST_CASE("match test") {
             }
         }
 
-        WHEN("ip test") {
+        WHEN("email test") {
             pattern = R"(\w[-\w\d.+]*@([A-Za-z0-9][-A-Za-z0-9]+\.)+[A-Za-z]{2,14})";
             fastre.compile(pattern);
             WHEN("right email address") {
@@ -150,6 +150,66 @@ TEST_CASE("match test") {
                         "123om.",
                         "d123@om.com.",
                         "d123@om.com.s",
+                };
+
+                for (auto &i : emails) {
+                    CHECK_FALSE(fastre.full_match(i));
+                }
+            }
+        }
+
+        WHEN("username test") {
+            pattern = R"([a-zA-Z]{1}([a-zA-Z0-9]|[._]){4,19})";
+            fastre.compile(pattern);
+            WHEN("right username") {
+                std::string emails[] = {
+                        "a.sdfiuoiuo124",
+                        "a.sdfi_iu..24",
+                        "IU.sdfi_iu..24",
+                        "U...........",
+                        "U......_____",
+                };
+                for (auto &i : emails) {
+                    CHECK(fastre.full_match(i));
+                }
+            }
+
+            WHEN("wrong username") {
+                std::string emails[] = {
+                        ".asdioufos",
+                        "f.asd@ioufos",
+                        "@.asdioufos",
+                        "I.asdioufoasfsdfqwdfdfsdfs",
+                        "_.fqwdfdfsdfs",
+                };
+
+                for (auto &i : emails) {
+                    CHECK_FALSE(fastre.full_match(i));
+                }
+            }
+        }
+
+        WHEN("url test") {
+            pattern = R"(https?://([\w]+\.)+[\w]+(/[\w./?%&=]*)?)";
+            fastre.compile(pattern);
+            WHEN("right urls") {
+                std::string emails[] = {
+                        "http://www.baidu.com",
+                        "https://www.baidu.com/",
+                        "https://www.baidu.com////////////",
+                        "https://www.baidu.com/sdf.?=&",
+                        "https://www.baidu/sdf.?=&",
+                };
+                for (auto &i : emails) {
+                    CHECK(fastre.full_match(i));
+                }
+            }
+
+            WHEN("wrong urls") {
+                std::string emails[] = {
+                        "sdfii",
+                        "http://www./sdfsdf",
+                        "httpss://www.ddd/sdfsdf",
                 };
 
                 for (auto &i : emails) {
