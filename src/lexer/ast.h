@@ -40,6 +40,7 @@ namespace REx {
     private:
         friend class Program;
         friend class Parser;
+        friend class Fastre;
         explicit AST(const Nodetype type_) : type(type_) {
             if (type_ == Nodetype::REPEAT || type_ == Nodetype::CHARSET) {
                 value = new Data();

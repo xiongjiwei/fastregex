@@ -10,11 +10,13 @@ void REx::Fastre::compile(const std::string& pattern_) {
     REx::REstring restring(pattern_);
     REx::Parser parser(restring);
 
-    bytecode = REx::Program::to_bytecode(parser.exper());
-    if (bytecode == nullptr) {
+    AST *pAst = parser.exper();
+    if (pAst == nullptr) {
         error_msg = parser.error_msg;
         error_index = parser.error_index;
+        return;
     }
+    bytecode = REx::Program::to_bytecode(pAst->optimize());
 }
 
 bool REx::Fastre::full_match(const std::string &string) {
