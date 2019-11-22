@@ -242,8 +242,7 @@ TEST_CASE("group() method should build correct AST by given regular expression")
             string = "()";
             auto test_ret = parser.group();
             THEN("should return a empty AST") {
-                CHECK(test_ret->type == REx::Nodetype::CHARSET);
-                CHECK(test_ret->value->charset.none());
+                CHECK(test_ret == nullptr);
             }
         }
 

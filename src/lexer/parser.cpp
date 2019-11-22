@@ -15,6 +15,7 @@ const std::string REx::Parser::error_msgs[8] = {
         "bad square bracket",
         "bad alternation",
 };
+
 //^e1$
 REx::AST *REx::Parser::regex() {
     AST *root = nullptr;
@@ -29,9 +30,14 @@ REx::AST *REx::Parser::regex() {
 
 //e1 | e2 | e3 | ...
 REx::AST *REx::Parser::exper() {
-    auto root = term();
+    AST *root = nullptr;
+    if (restring.size() > 0) {
+        root = term();
+    } else {
+        return nullptr;
+    }
 
-    while (restring.size() > 0 && restring[0] == '|' && root != nullptr) {
+    while (restring.size() > 0 && restring[0] == '|' && error_code.none()) {
         restring.remove_prefix();
         if (restring.size() == 0 || restring[0] == '|') {
             set_error_code(bad_alternation);
@@ -46,7 +52,7 @@ REx::AST *REx::Parser::exper() {
 //e1*e2+e3?...
 REx::AST *REx::Parser::term() {
     AST *root = repeat();
-    while (restring.size() > 0 && restring[0] != '|' && restring[0] != ')' && root != nullptr) {
+    while (restring.size() > 0 && restring[0] != '|' && restring[0] != ')' && error_code.none()) {
         root = collapse_binary_operator(root, repeat(), Nodetype::AND);
     }
 
@@ -56,14 +62,14 @@ REx::AST *REx::Parser::term() {
 //e1*, e2+, e3?, e4{m,n}
 REx::AST *REx::Parser::repeat() {
 
-    if (restring.size() > 0 && (restring[0] == '*' || restring[0] == '+' || restring[0] == '?')) {
+    if (restring[0] == '*' || restring[0] == '+' || restring[0] == '?') {
         restring.remove_prefix();
         set_error_code(bad_quantifier);
         return nullptr;
     }
 
     AST *root = factor();
-    if (restring.size() > 0 && root != nullptr && error_code.none()) {
+    if (restring.size() > 0 && error_code.none()) {
         if (restring[0] == '*') {
             root = collapse_unary_operator(root, Nodetype::STAR);
             restring.remove_prefix();
@@ -146,7 +152,7 @@ REx::AST *REx::Parser::maybe_repeat(AST *root) {
 
 //(e1e2e3)
 REx::AST *REx::Parser::factor() {
-    if (restring.size() > 0 && error_code.none()) {
+    if (error_code.none()) {
         if (restring[0] == '(') {
             return group();
         } else if (restring[0] == '[') {
@@ -159,31 +165,27 @@ REx::AST *REx::Parser::factor() {
 }
 
 REx::AST *REx::Parser::group() {
-    AST *root = nullptr;
     if (restring.size() >= 2 && restring[0] == '(') {
         restring.remove_prefix();
-        root = exper();
+        auto root = exper();
         if (restring.size() == 0 || restring[0] != ')') {
             set_error_code(bad_parenthesis);
             delete root;
             return nullptr;
         }
-
-        if (root == nullptr && error_code.none()) {
-            root = new AST(Nodetype::CHARSET);
-        }
         restring.remove_prefix();
-    } else {
-        this->set_error_code(bad_parenthesis);
+        return root;
     }
-    return root;
+
+    this->set_error_code(bad_parenthesis);
+    return nullptr;
 }
 
 REx::AST *REx::Parser::charset() {
     AST *root = nullptr;
     if (restring.size() >= 2) {
         root = new AST(Nodetype::CHARSET);
-        restring.remove_prefix();
+        restring.remove_prefix();   //remove [
         bool is_negative = false;
         if (restring[0] == '^') {
             is_negative = true;
@@ -254,7 +256,7 @@ REx::AST *REx::Parser::charset() {
 
 REx::AST *REx::Parser::chars() {
     AST *root = nullptr;
-    if (restring.size() > 0 && UNHANDLED_CHAR.find(restring[0]) == UNHANDLED_CHAR.end()) {
+    if (UNHANDLED_CHAR.find(restring[0]) == UNHANDLED_CHAR.end()) {
         root = new AST(Nodetype::CHARSET);
         if (restring[0] == '\\') {
             auto code_set = process_escape();
@@ -280,7 +282,7 @@ REx::AST *REx::Parser::chars() {
     return root;
 }
 
-REx::AST *REx::Parser::collapse_unary_operator(AST *child, Nodetype type) {
+REx::AST *REx::Parser::collapse_unary_operator(AST *child, Nodetype type) { //NOLINT
     if (child == nullptr) {
         return nullptr;
     }
@@ -291,10 +293,12 @@ REx::AST *REx::Parser::collapse_unary_operator(AST *child, Nodetype type) {
 }
 
 REx::AST *REx::Parser::collapse_binary_operator(AST *left, AST *right, Nodetype type) {
-    if (left == nullptr || right == nullptr) {
-        delete left;
-        delete right;
+    if (!error_code.none()) {
         return nullptr;
+    }
+
+    if (left == nullptr || right == nullptr) {
+        return left == nullptr ? right : left;
     }
 
     auto root = new AST(type);

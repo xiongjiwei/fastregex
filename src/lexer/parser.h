@@ -63,8 +63,8 @@ namespace REx {
         REstring& restring;
         const std::unordered_set<char> UNHANDLED_CHAR = {'*', '+', '?', ')', '|',};
 
-        static AST * collapse_unary_operator(AST *child, Nodetype type);
-        static AST * collapse_binary_operator(AST *left, AST* right, Nodetype type);
+        AST * collapse_unary_operator(AST *child, Nodetype type);
+        AST * collapse_binary_operator(AST *left, AST* right, Nodetype type);
 
         static bool is_HEX_digital(const char c) {
             return ('0' <= c && c <= '9') || ('a' <= c && c <= 'f') || ('A' <= c && c <= 'F');
