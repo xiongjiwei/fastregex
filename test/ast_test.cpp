@@ -10,10 +10,6 @@
 TEST_CASE("operator ==") {
     SECTION("should return true when pointer is same") {
         auto left = new REx::AST(REx::Nodetype::STAR);
-        left->add_character('a');
-        left->low = 1;
-        left->high = 2;
-
         auto right = left;
 
         CHECK((*left == *right));
@@ -21,31 +17,22 @@ TEST_CASE("operator ==") {
 
     SECTION("should return true when content is same") {
         auto left = new REx::AST(REx::Nodetype::STAR);
-        left->add_character('a');
-        left->low = 1;
-        left->high = 2;
         left->left = new REx::AST(REx::Nodetype::CHARSET);
+        left->left->value->add_character('a');
 
         auto right = new REx::AST(REx::Nodetype::STAR);
-        right->add_character('a');
-        right->low = 1;
-        right->high = 2;
         right->left = new REx::AST(REx::Nodetype::CHARSET);
+        right->left->value->add_character('a');
 
         CHECK((*left == *right));
     }
 
     SECTION("should return false when anyone is not same") {
         auto left = new REx::AST(REx::Nodetype::STAR);
-        left->add_character('a');
-        left->low = 1;
-        left->high = 2;
         left->left = new REx::AST(REx::Nodetype::CHARSET);
+        left->left->value->add_character('a');
 
         auto right = new REx::AST(REx::Nodetype::STAR);
-        right->add_character('a');
-        right->low = 1;
-        right->high = 2;
 
         CHECK_FALSE((*left == *right));
     }
@@ -71,10 +58,10 @@ TEST_CASE("optimize") {
 
             THEN("optimise to charset") {
                 auto correct_ast = new REx::AST(REx::Nodetype::CHARSET);
-                correct_ast->add_character('a');
-                correct_ast->add_character('b');
-                correct_ast->add_character('c');
-                correct_ast->add_character('d');
+                correct_ast->value->add_character('a');
+                correct_ast->value->add_character('b');
+                correct_ast->value->add_character('c');
+                correct_ast->value->add_character('d');
                 CHECK((*correct_ast == *test_ret));
             }
         }
@@ -87,7 +74,7 @@ TEST_CASE("optimize") {
             THEN("optimise to star") {
                 auto correct_ast = new REx::AST(REx::Nodetype::STAR);
                 correct_ast->child = new REx::AST(REx::Nodetype::CHARSET);
-                correct_ast->child->add_character('a');
+                correct_ast->child->value->add_character('a');
 
                 CHECK((*test_ret == *correct_ast));
             }
@@ -99,7 +86,7 @@ TEST_CASE("optimize") {
             THEN("optimise to star") {
                 auto correct_ast = new REx::AST(REx::Nodetype::STAR);
                 correct_ast->child = new REx::AST(REx::Nodetype::CHARSET);
-                correct_ast->child->add_character('a');
+                correct_ast->child->value->add_character('a');
 
                 CHECK((*test_ret == *correct_ast));
             }
@@ -111,15 +98,10 @@ TEST_CASE("optimize") {
             THEN("optimise to star") {
                 auto correct_ast = new REx::AST(REx::Nodetype::STAR);
                 correct_ast->child = new REx::AST(REx::Nodetype::CHARSET);
-                correct_ast->child->add_character('a');
+                correct_ast->child->value->add_character('a');
 
                 CHECK((*test_ret == *correct_ast));
             }
-        }
-
-        WHEN("child is repeat") {
-            string = "(a{1,10})*";
-            auto test_ret = parser.exper()->optimize();
         }
     }
 
@@ -130,7 +112,7 @@ TEST_CASE("optimize") {
             THEN("optimise to star") {
                 auto correct_ast = new REx::AST(REx::Nodetype::STAR);
                 correct_ast->child = new REx::AST(REx::Nodetype::CHARSET);
-                correct_ast->child->add_character('a');
+                correct_ast->child->value->add_character('a');
 
                 CHECK((*test_ret == *correct_ast));
             }
@@ -142,7 +124,7 @@ TEST_CASE("optimize") {
             THEN("optimise to plus") {
                 auto correct_ast = new REx::AST(REx::Nodetype::PLUS);
                 correct_ast->child = new REx::AST(REx::Nodetype::CHARSET);
-                correct_ast->child->add_character('a');
+                correct_ast->child->value->add_character('a');
 
                 CHECK((*test_ret == *correct_ast));
             }
@@ -154,7 +136,7 @@ TEST_CASE("optimize") {
             THEN("optimise to star") {
                 auto correct_ast = new REx::AST(REx::Nodetype::STAR);
                 correct_ast->child = new REx::AST(REx::Nodetype::CHARSET);
-                correct_ast->child->add_character('a');
+                correct_ast->child->value->add_character('a');
 
                 CHECK((*test_ret == *correct_ast));
             }
@@ -174,7 +156,7 @@ TEST_CASE("optimize") {
             THEN("optimise to star") {
                 auto correct_ast = new REx::AST(REx::Nodetype::STAR);
                 correct_ast->child = new REx::AST(REx::Nodetype::CHARSET);
-                correct_ast->child->add_character('a');
+                correct_ast->child->value->add_character('a');
 
                 CHECK((*test_ret == *correct_ast));
             }
@@ -186,7 +168,7 @@ TEST_CASE("optimize") {
             THEN("optimise to star") {
                 auto correct_ast = new REx::AST(REx::Nodetype::STAR);
                 correct_ast->child = new REx::AST(REx::Nodetype::CHARSET);
-                correct_ast->child->add_character('a');
+                correct_ast->child->value->add_character('a');
 
                 CHECK((*test_ret == *correct_ast));
             }
@@ -198,7 +180,7 @@ TEST_CASE("optimize") {
             THEN("optimise to option") {
                 auto correct_ast = new REx::AST(REx::Nodetype::OPTION);
                 correct_ast->child = new REx::AST(REx::Nodetype::CHARSET);
-                correct_ast->child->add_character('a');
+                correct_ast->child->value->add_character('a');
 
                 CHECK((*test_ret == *correct_ast));
             }
@@ -217,7 +199,7 @@ TEST_CASE("optimize") {
             THEN("optimise to star") {
                 auto correct_ast = new REx::AST(REx::Nodetype::STAR);
                 correct_ast->child = new REx::AST(REx::Nodetype::CHARSET);
-                correct_ast->child->add_character('a');
+                correct_ast->child->value->add_character('a');
 
                 CHECK((*test_ret == *correct_ast));
             }
@@ -229,7 +211,7 @@ TEST_CASE("optimize") {
             THEN("optimise to plus") {
                 auto correct_ast = new REx::AST(REx::Nodetype::PLUS);
                 correct_ast->child = new REx::AST(REx::Nodetype::CHARSET);
-                correct_ast->child->add_character('a');
+                correct_ast->child->value->add_character('a');
 
                 CHECK((*test_ret == *correct_ast));
             }
@@ -240,10 +222,10 @@ TEST_CASE("optimize") {
             auto test_ret = parser.exper()->optimize();
             THEN("optimise to 0 to high") {
                 auto correct_ast = new REx::AST(REx::Nodetype::REPEAT);
-                correct_ast->low = 0;
-                correct_ast->high = 5;
+                correct_ast->value->low = 0;
+                correct_ast->value->high = 5;
                 correct_ast->child = new REx::AST(REx::Nodetype::CHARSET);
-                correct_ast->child->add_character('a');
+                correct_ast->child->value->add_character('a');
 
                 CHECK((*test_ret == *correct_ast));
             }
@@ -262,7 +244,7 @@ TEST_CASE("optimize") {
             THEN("optimise to star") {
                 auto correct_ast = new REx::AST(REx::Nodetype::STAR);
                 correct_ast->child = new REx::AST(REx::Nodetype::CHARSET);
-                correct_ast->child->add_character('a');
+                correct_ast->child->value->add_character('a');
 
                 CHECK((*test_ret == *correct_ast));
             }
@@ -274,7 +256,7 @@ TEST_CASE("optimize") {
             THEN("optimise to star") {
                 auto correct_ast = new REx::AST(REx::Nodetype::STAR);
                 correct_ast->child = new REx::AST(REx::Nodetype::CHARSET);
-                correct_ast->child->add_character('a');
+                correct_ast->child->value->add_character('a');
 
                 CHECK((*test_ret == *correct_ast));
             }

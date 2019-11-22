@@ -11,13 +11,13 @@
 
 namespace REx {
 
-    class Pro_Tree {
-    public:
-        explicit Pro_Tree(Nodetype type) {
+    class ProgramTree {
+    private:
+        friend class Program;
+        explicit ProgramTree(Nodetype type) {
             this->type = type;
         };
-
-        ~Pro_Tree() {
+        ~ProgramTree() {
             delete left;
             delete right;
             delete[] bytecode;
@@ -38,29 +38,34 @@ namespace REx {
         size_t length = 0;
         BYTE *bytecode = nullptr;
         Nodetype type;
-        Pro_Tree *left = nullptr;
-        Pro_Tree *&child = left;
-        Pro_Tree *right = nullptr;
+        ProgramTree *left = nullptr;
+        ProgramTree *&child = left;
+        ProgramTree *right = nullptr;
 
-        int low = 0;
-        int high = 0;
+        union {
+            struct {
+                int low = 0;
+                int high = 0;
+            };
+        };
     };
     class Program {
     private:
         friend class Fastre;
         static BYTE *to_bytecode(AST *ast);
-        static Pro_Tree * compile_charset(AST *ast);
-        static Pro_Tree * compile_to_program_tree(AST *ast);
-        static void marshal_program(int16_t pos, REx::Pro_Tree *pro_tree);
-        static void marshal_or(int16_t pos, Pro_Tree *pro_tree);
-        static void marshal_star(int16_t pos, Pro_Tree *pro_tree);
-        static void marshal_plus(int16_t pos, Pro_Tree *pro_tree);
-        static void marshal_option(int16_t pos, Pro_Tree *pro_tree);
-        static void marshal_and(int16_t pos, Pro_Tree *pro_tree);
-        static void marshal_repeat(int16_t pos, Pro_Tree *pro_tree);
-        static void marshal_charset(int16_t pos, Pro_Tree *pro_tree);
+        static ProgramTree * compile_charset(AST *ast);
 
-        static void init_program(const Pro_Tree *pro_tree);
+        static ProgramTree * compile_to_program_tree(AST *ast);
+        static void marshal_program(int16_t pos, REx::ProgramTree *pro_tree);
+        static void marshal_or(int16_t pos, ProgramTree *pro_tree);
+        static void marshal_star(int16_t pos, ProgramTree *pro_tree);
+        static void marshal_plus(int16_t pos, ProgramTree *pro_tree);
+        static void marshal_option(int16_t pos, ProgramTree *pro_tree);
+        static void marshal_and(int16_t pos, ProgramTree *pro_tree);
+        static void marshal_repeat(int16_t pos, ProgramTree *pro_tree);
+        static void marshal_charset(int16_t pos, ProgramTree *pro_tree);
+
+        static void init_program(const ProgramTree *pro_tree);
         static int get_padding_byte_length(AST *ast);
         static void marshal_int16(int16_t pos, int16_t num);
         static void marshal_instruction(int16_t pos, REx::BYTE instruction);

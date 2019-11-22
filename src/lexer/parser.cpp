@@ -108,8 +108,8 @@ REx::AST *REx::Parser::maybe_repeat(AST *root) {
                 high = low;
                 restring.remove_prefix();
                 auto father = new AST(Nodetype::REPEAT);
-                father->low = low;
-                father->high = high;
+                father->value->low = low;
+                father->value->high = high;
                 father->child = root;
                 return father;
             }
@@ -134,8 +134,8 @@ REx::AST *REx::Parser::maybe_repeat(AST *root) {
             }
             restring.remove_prefix();
             auto father = new AST(Nodetype::REPEAT);
-            father->low = low;
-            father->high = high;
+            father->value->low = low;
+            father->value->high = high;
             father->child = root;
             return father;
         }
@@ -199,7 +199,7 @@ REx::AST *REx::Parser::charset() {
                         stake[i + 2] != -1) {  //we have a '-' in mid
                         if (stake[i] <= stake[i + 2]) {// left char point should no-greater than right char point
                             for (int j = stake[i]; j <= stake[i + 2]; ++j) {
-                                root->add_character(char(j));
+                                root->value->add_character(char(j));
                             }
                             i += 2; //move i forward 3 step
                         } else { //bad char range
@@ -209,7 +209,7 @@ REx::AST *REx::Parser::charset() {
                         }
                     } else { //we do not have a '-' in mid
                         if (stake[i] != -1) { // this char is not \d\w\s..
-                            root->add_character(
+                            root->value->add_character(
                                     stake[i] == -2 ? '-'
                                                    : stake[i]); //if stake[i] == -2, it means this is a '-' character
                         }
@@ -233,7 +233,7 @@ REx::AST *REx::Parser::charset() {
                 } else {
                     stake.push_back(-1);    //-1 indicate charset like \d\w\s
                     for (char code : *code_set) {
-                        root->add_character((char) code);
+                        root->value->add_character((char) code);
                     }
                     delete code_set;
                 }
@@ -260,7 +260,7 @@ REx::AST *REx::Parser::chars() {
             auto code_set = process_escape();
             if (code_set != nullptr) {
                 for (char code : *code_set) {
-                    root->add_character((char) code);
+                    root->value->add_character((char) code);
                 }
                 delete code_set;
             } else {
@@ -272,7 +272,7 @@ REx::AST *REx::Parser::chars() {
             root->set_charset_negative();
             restring.remove_prefix();
         } else {
-            root->add_character(restring[0]);
+            root->value->add_character(restring[0]);
             restring.remove_prefix();
         }
     }

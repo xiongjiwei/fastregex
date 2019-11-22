@@ -12,7 +12,7 @@
 TEST_CASE("ast to program") {
     SECTION("charset") {
         auto *charset = new REx::AST(REx::Nodetype::CHARSET);
-        charset->add_character('a');
+        charset->value->add_character('a');
 
         auto program = REx::Program::compile_charset(charset);
         const REx::BYTE test_code[] = {0x01, 'a'};
@@ -23,12 +23,12 @@ TEST_CASE("ast to program") {
 
     SECTION("charset") {
         auto *charset = new REx::AST(REx::Nodetype::CHARSET);
-        charset->add_character(0x00);
-        charset->add_character(0x01);
-        charset->add_character(0x02);
-        charset->add_character(0x08);
-        charset->add_character(0x09);
-        charset->add_character(0x0a);
+        charset->value->add_character(0x00);
+        charset->value->add_character(0x01);
+        charset->value->add_character(0x02);
+        charset->value->add_character(0x08);
+        charset->value->add_character(0x09);
+        charset->value->add_character(0x0a);
 
         auto program = REx::Program::compile_charset(charset);
         const REx::BYTE test_code[] = {

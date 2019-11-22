@@ -21,13 +21,13 @@ REx::BYTE *REx::Program::to_bytecode(AST *ast) {
     return REx::Program::program;
 }
 
-void REx::Program::init_program(const Pro_Tree *pro_tree) {
+void REx::Program::init_program(const ProgramTree *pro_tree) {
     REx::Program::program = new BYTE[pro_tree->length + 1];
 }
 
-REx::Pro_Tree *REx::Program::compile_charset(AST *ast) {
-    std::bitset<256> & charset = ast->charset;
-    auto leaf = new Pro_Tree(ast->type);
+REx::ProgramTree *REx::Program::compile_charset(AST *ast) {
+    std::bitset<256> & charset = ast->value->charset;
+    auto leaf = new ProgramTree(ast->type);
 
     if (charset.none()) { //not possible
         return nullptr;
@@ -53,7 +53,7 @@ REx::Pro_Tree *REx::Program::compile_charset(AST *ast) {
     return leaf;
 }
 
-REx::Pro_Tree *REx::Program::compile_to_program_tree(REx::AST *ast) {
+REx::ProgramTree *REx::Program::compile_to_program_tree(REx::AST *ast) {
     if (ast == nullptr) {
         return nullptr;
     }
@@ -65,19 +65,22 @@ REx::Pro_Tree *REx::Program::compile_to_program_tree(REx::AST *ast) {
     auto left = compile_to_program_tree(ast->left);
     auto right = compile_to_program_tree(ast->right);
 
-    auto root = new Pro_Tree(ast->type);
+    auto root = new ProgramTree(ast->type);
     root->left = left;
     root->right = right;
 
     root->length = get_padding_byte_length(ast);
-    root->low = ast->low;
-    root->high = ast->high;
 
-    if (left != nullptr) {
-        root->length += left->length;
+    if (ast->type == Nodetype::REPEAT) {
+        root->low = ast->value->low;
+        root->high = ast->value->high;
         if (root->low != 0 && root->low != root->high) {
             root->length += left->length;
         }
+    }
+
+    if (left != nullptr) {
+        root->length += left->length;
     }
 
     if (right != nullptr) {
@@ -99,6 +102,7 @@ void REx::Program::marshal_content(int16_t pos, REx::BYTE *bytecode, int16_t len
     memcpy(program + pos, bytecode, length);
 }
 
+
 int REx::Program::get_padding_byte_length(AST *ast) {
     int padding = 0;
     int table[] = {
@@ -112,13 +116,13 @@ int REx::Program::get_padding_byte_length(AST *ast) {
     };
 
     if (ast->type == Nodetype::REPEAT) {
-        if (ast->low != 0) {
+        if (ast->value->low != 0) {
             padding += 6;
         }
 
-        if (ast->high == INT_MAX) {
+        if (ast->value->high == INT_MAX) {
             padding += 8;
-        } else if (ast->high != ast->low) {
+        } else if (ast->value->high != ast->value->low) {
             padding += 11;
         }
     }
@@ -126,8 +130,7 @@ int REx::Program::get_padding_byte_length(AST *ast) {
     return table[(BYTE)ast->type] + padding;
 }
 
-
-void REx::Program::marshal_program(int16_t pos, REx::Pro_Tree *pro_tree) {
+void REx::Program::marshal_program(int16_t pos, REx::ProgramTree *pro_tree) {
     switch (pro_tree->type) {
         case Nodetype::OR:
             marshal_or(pos, pro_tree);
@@ -161,7 +164,7 @@ void REx::Program::marshal_program(int16_t pos, REx::Pro_Tree *pro_tree) {
  * |   1   |   2  |   2  |     n     |  1  |   2  |     n     |···········|
  * ------------------------------------------------------------------------
  * */
-void REx::Program::marshal_or(int16_t pos, Pro_Tree *pro_tree) {
+void REx::Program::marshal_or(int16_t pos, ProgramTree *pro_tree) {
     marshal_instruction(pos, (BYTE)Instructions::Split);
     marshal_int16(pos + 1, 1 + 2 + 2);
     marshal_int16(pos + 1 + 2, 1 + 2 + 2 + pro_tree->left->length + 1 + 2);
@@ -182,7 +185,7 @@ void REx::Program::marshal_or(int16_t pos, Pro_Tree *pro_tree) {
  * |   1   |   2  |   2  |      n      |  1  |   2  |······|
  * ---------------------------------------------------------
  * */
-void REx::Program::marshal_star(int16_t pos, Pro_Tree *pro_tree) {
+void REx::Program::marshal_star(int16_t pos, ProgramTree *pro_tree) {
     marshal_instruction(pos, (BYTE)Instructions::Split);
     marshal_int16(pos + 1, 1 + 2 + 2);
     marshal_int16(pos + 1 + 2, 1 + 2 + 2 + pro_tree->child->length + 1 + 2);
@@ -192,6 +195,7 @@ void REx::Program::marshal_star(int16_t pos, Pro_Tree *pro_tree) {
     marshal_int16(pos + 1 + 2 + 2 + pro_tree->child->length + 1, -(1 + 2 + 2 + pro_tree->child->length));
 }
 
+
 /*
  * --------------------------------------------
  * |L0                                 |L1    |
@@ -200,7 +204,7 @@ void REx::Program::marshal_star(int16_t pos, Pro_Tree *pro_tree) {
  * |      n      |   1   |   2  |   2  |······|
  * --------------------------------------------
  */
-void REx::Program::marshal_plus(int16_t pos, Pro_Tree *pro_tree) {
+void REx::Program::marshal_plus(int16_t pos, ProgramTree *pro_tree) {
     marshal_program(pos, pro_tree->child);
 
     marshal_instruction(pos + pro_tree->child->length, (BYTE)Instructions::Split);
@@ -217,7 +221,7 @@ void REx::Program::marshal_plus(int16_t pos, Pro_Tree *pro_tree) {
  * |   1   |   2  |   2  |      n      |······|
  * --------------------------------------------
  * */
-void REx::Program::marshal_option(int16_t pos, Pro_Tree *pro_tree) {
+void REx::Program::marshal_option(int16_t pos, ProgramTree *pro_tree) {
     marshal_instruction(pos, (BYTE)Instructions::Split);
     marshal_int16(pos + 1, 1 + 2 + 2);
     marshal_int16(pos + 1 + 2, 1 + 2 + 2 + pro_tree->child->length);
@@ -234,11 +238,10 @@ void REx::Program::marshal_option(int16_t pos, Pro_Tree *pro_tree) {
  * |      n      |      n      |
  * -----------------------------
  */
-void REx::Program::marshal_and(int16_t pos, Pro_Tree *pro_tree) {
+void REx::Program::marshal_and(int16_t pos, ProgramTree *pro_tree) {
     marshal_program(pos, pro_tree->left);
     marshal_program(pos + pro_tree->left->length, pro_tree->right);
 }
-
 
 /*
  * -----------------------------------------------------------------------------------------------------------
@@ -248,7 +251,7 @@ void REx::Program::marshal_and(int16_t pos, Pro_Tree *pro_tree) {
  * |  1   |   2   |    n    |    1    |  2 |   1  |   2   |   1   |  2 |  2 |    n    |    1    |  2 | other |
  * -----------------------------------------------------------------------------------------------------------
  */
-void REx::Program::marshal_repeat(int16_t pos, REx::Pro_Tree *pro_tree) {
+void REx::Program::marshal_repeat(int16_t pos, REx::ProgramTree *pro_tree) {
     if (pro_tree->low != 0) {
         marshal_instruction(pos, (BYTE)Instructions::Loop);
         marshal_int16(pos + 1, pro_tree->low);
@@ -283,6 +286,6 @@ void REx::Program::marshal_repeat(int16_t pos, REx::Pro_Tree *pro_tree) {
     }
 }
 
-void REx::Program::marshal_charset(int16_t pos, Pro_Tree *pro_tree) {
+void REx::Program::marshal_charset(int16_t pos, ProgramTree *pro_tree) {
     marshal_content(pos, pro_tree->bytecode, pro_tree->length);
 }

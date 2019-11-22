@@ -9,7 +9,7 @@
 
 namespace REx {
     class Data {
-    private:
+    public:
         friend class AST;
         union {
             std::bitset<256> charset = 0;
@@ -28,8 +28,12 @@ namespace REx {
         }
 
         bool operator==(Data &other) {
-            return true;
+            return charset == other.charset && low == other.low && high == other.high;
         }
+
+    private:
+        Data(){};
+        ~Data(){};
     };
 
     class AST {
@@ -57,14 +61,8 @@ namespace REx {
         AST*& child = left;
         Data *value = nullptr;
 
-        std::bitset<256> charset;
-
-        void add_character(char ch) {
-            this->charset[ch] = true;
-        }
-
         void set_charset_negative() {
-            this->charset.flip();
+            this->value->set_charset_negative();
         }
 
         bool operator==(AST &other) {
@@ -89,17 +87,6 @@ namespace REx {
 
         void delete_child();
     };
-
-
-
-
-    class AST_or : private AST {};
-    class AST_star : public AST {};
-    class AST_plus : public AST {};
-    class AST_option : public AST {};
-    class AST_and : public AST {};
-    class AST_repeat : public AST {};
-    class AST_charset : public AST {};
 }
 
 

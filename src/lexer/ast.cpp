@@ -36,8 +36,9 @@ REx::AST *REx::AST::optimize() {
 
 void REx::AST::optimize_OR() {
     if (this->left->type == Nodetype::CHARSET && this->right->type == Nodetype::CHARSET) {
-        this->charset = this->left->charset | this->right->charset;
         this->type = Nodetype::CHARSET;
+        this->value = new Data();
+        this->value->charset = this->left->value->charset | this->right->value->charset;
 
         delete this->left;
         delete this->right;
@@ -89,11 +90,13 @@ void REx::AST::optimize_REPEAT() {
 
         this->type = Nodetype::STAR;
         delete value;
+        value = nullptr;
     } else if (this->child->type == Nodetype::PLUS) {   //a+{m,n} --> a+
         delete_child();
 
         this->type = Nodetype::PLUS;
         delete value;
+        value = nullptr;
     } else if (this->child->type == Nodetype::OPTION) { //a?{m,n} --> a{0,n}
         delete_child();
 
