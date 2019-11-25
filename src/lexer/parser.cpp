@@ -219,7 +219,7 @@ REx::AST *REx::Parser::charset() {
                 }
 
                 if (is_negative) {
-                    root->set_charset_negative();
+                    root->value->set_charset_negative();
                 }
                 return root;
             }
@@ -271,7 +271,7 @@ REx::AST *REx::Parser::chars() {
                 return nullptr;
             }
         } else if (restring[0] == '.') {
-            root->set_charset_negative();
+            root->value->set_charset_negative();
             restring.remove_prefix();
         } else {
             root->value->add_character(restring[0]);

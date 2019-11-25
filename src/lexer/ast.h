@@ -62,10 +62,6 @@ namespace REx {
         AST*& child = left;
         Data *value = nullptr;
 
-        void set_charset_negative() {
-            this->value->set_charset_negative();
-        }
-
         bool operator==(AST &other) {
             return (this->value == other.value ||
                     (this->value != nullptr && other.value != nullptr && *(this->value) == *(other.value))) &&

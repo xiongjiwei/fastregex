@@ -45,7 +45,7 @@ TEST_CASE("ast to program") {
 
     SECTION("charset") {
         auto *charset = new REx::AST(REx::Nodetype::CHARSET);
-        charset->set_charset_negative();
+        charset->value->set_charset_negative();
 
         auto program = REx::Program::compile_charset(charset);
         const REx::BYTE test_code[] = {
