@@ -50,6 +50,9 @@ namespace REx {
         AST *maybe_repeat(AST *root);
         std::unordered_set<char> * process_escape();
 
+        AST * collapse_unary_operator(AST *child, Nodetype type);
+        AST * collapse_binary_operator(AST *left, AST* right, Nodetype type);
+
         static const unsigned char bad_escape =         1;
         static const unsigned char bad_parenthesis =    2;
         static const unsigned char bad_quantifier =     3;
@@ -60,11 +63,6 @@ namespace REx {
         bool get_error_code(unsigned char code) const {
             return error_code[code];
         }
-        REstring& restring;
-        const std::unordered_set<char> UNHANDLED_CHAR = {'*', '+', '?', ')', '|',};
-
-        AST * collapse_unary_operator(AST *child, Nodetype type);
-        AST * collapse_binary_operator(AST *left, AST* right, Nodetype type);
 
         static bool is_HEX_digital(const char c) {
             return ('0' <= c && c <= '9') || ('a' <= c && c <= 'f') || ('A' <= c && c <= 'F');
@@ -89,6 +87,8 @@ namespace REx {
             error_index = restring.cur_index;
             error_msg = error_msgs[code];
         }
+        REstring& restring;
+        const std::unordered_set<char> UNHANDLED_CHAR = {'*', '+', '?', ')', '|',};
 
         static const std::string error_msgs[8];
         std::bitset<8> error_code;
