@@ -22,4 +22,4 @@ This is a regular expression engine.
 
 ## About
 
-Parser the pattern to abstract syntax tree, and then compile the abstract syntax tree to bytecode program. Use virture machine to run the bytecode program.
+Parse the pattern to abstract syntax tree, and then compile the abstract syntax tree to bytecode program. Use virture machine to run the bytecode program.
