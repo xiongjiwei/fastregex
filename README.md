@@ -4,7 +4,7 @@ This is a regular expression engine.
 
 ## Feature
 
-- `a*` spuuort star
+- `a*` support star
 - `a+` support plus
 - `a?` support optional
 - `a|b` support alternation
